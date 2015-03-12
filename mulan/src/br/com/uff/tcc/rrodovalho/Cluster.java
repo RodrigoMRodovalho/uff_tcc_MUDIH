@@ -6,7 +6,7 @@ public class Cluster {
 	
 	private int id;
 	private int father_id;
-	ArrayList<Integer> elements = new ArrayList<Integer>();
+	ArrayList<Element> elements = new ArrayList<Element>();
 	
 	public int getId() {
 		return id;
@@ -21,26 +21,29 @@ public class Cluster {
 		this.father_id = father_id;
 	}
 	
-	public void addElement(int element){
+	public void addElement(Element element){
 		this.elements.add(element);
 	}
 	
-	public ArrayList<Integer> getElements(){
+	public ArrayList<Element> getElements(){
 		return this.elements;
 	}
 	
-	public void setElements(ArrayList<Integer> elements){
+	public void setElements(ArrayList<Element> elements){
 		this.elements = elements;
 	}
 	
-	public void removeElement(int element){
+	public Element removeElement(int elementID){
 		
+		Element element=null;
 		for(int i=0;i<this.elements.size();i++){
-			if(this.elements.get(i)==element){
+			if(this.elements.get(i).getId()==elementID){
+				element = this.elements.get(i);
 				this.elements.remove(i);
+				break;
 			}
-			break;
 		}
+		return element;
 		
 	}
 	

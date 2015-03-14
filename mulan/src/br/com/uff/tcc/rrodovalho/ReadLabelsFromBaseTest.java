@@ -139,7 +139,7 @@ public class ReadLabelsFromBaseTest {
 		
 		
 		ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
-		ArrayList<Integer> whoOut = new ArrayList<Integer>();
+		ArrayList<Integer> whoOut;// = new ArrayList<Integer>();
 		id=0;
 		Cluster root = new Cluster();
 		root.setId(id);
@@ -158,40 +158,25 @@ public class ReadLabelsFromBaseTest {
 			sMatrix = getSimilarityMatrix(clus);
 			//sMatrix = getSimilarityMatrix();
 			biggestAverageAndID = getBiggestAverageSimilarity(sMatrix);
+			Cluster	clus2 = new Cluster();
+			clus2.setId(id);
+			id++;
 			while(biggestAverageAndID[0]>0){
-				
-				Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     				Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
 				addOrUpdateClusterList(clusterList, clus);
-				Cluster	clus2 = new Cluster();
-				clus2.setId(id);
-				id++;
+//				Cluster	clus2 = new Cluster();
+//				clus2.setId(id);
+//				id++;
 				clus2.addElement(elementRemoved);
 				addOrUpdateClusterList(clusterList, clus2);
+				whoOut = new ArrayList<Integer>();
 				whoOut.add((int)biggestAverageAndID[1]);
 				biggestAverageAndID[0] = getSimilaritiesFromNewCluster(sMatrix,whoOut);
 				printClusterList(clusterList);
 			}
-			
 			j++;
-			
 		}while(!hasTwoElementsPerCluster(clusterList));	
 		
-		
-		
-//		for(int k=0;k<instanceAndLabelsMap.size();k++){
-//			instanceAndLabelsMap.keySet().iterator()
-//			System.out.println(instanceAndLabelsMap.get(instanceAndLabelsMap.keySet()));
-//		}
-		
-		
-//		System.out.println(instances.get(0).toDoubleArray()[73]);
-//		
-//		System.out.println(mInstances.getFeatureAttributes().size());
-//		int s = mInstances.getFeatureIndices()[0];
-//		System.out.println(s);
-//		
-//		int t = mInstances.getLabelIndices()[0];
-//		System.out.println(t);
 		
 	}
 	
@@ -247,23 +232,6 @@ public class ReadLabelsFromBaseTest {
 		return false;
 	}
 	
-//	public static double[][] getSimilarityMatrix(Cluster cluster){
-//		
-//		int dim = cluster.getElements().size();
-//		double[][] m = new double[dim][dim];
-//		
-//		for(int i=0;i<dim;i++){
-//			for(int j=0;j<dim;j++){
-//				if(i!=j){
-//					m[i][j] = getEuclideanDistance(cluster.getElements().get(i).getLabelsArray(),cluster.getElements().get(j).getLabelsArray() );
-//				}
-//				else{
-//					m[i][j] = 0;
-//				}
-//			}
-//		}
-//		return m;
-//	}
 	
 	public static SimilarityMatrixElement[][] getSimilarityMatrix(Cluster cluster){
 		
@@ -284,20 +252,6 @@ public class ReadLabelsFromBaseTest {
 		return m;
 	}
 	
-//	public static double[][] getSimilarityMatrix(){
-//		
-//		
-//		double[][] m = {
-//				{ 0.0, 4.47, 4.0, 2.0, 2.24,2.83 },
-//                { 4.47, 0.0, 2.0, 4.0, 2.24,7.21 },
-//                { 4.0, 2.0, 0.0, 4.47, 2.24,6.32 },
-//                { 2.0, 4.0, 4.47, 0.0, 2.24, 4.47 },
-//                { 2.24, 2.24, 2.24, 2.24, 0.0,5.0 },
-//                { 2.83, 7.21, 6.32, 4.47, 5.0,0.0 },
-//            };
-//		
-//		return m;
-//	}
 	
 	public static SimilarityMatrixElement[][] getSimilarityMatrix(){
 		
@@ -314,28 +268,6 @@ public class ReadLabelsFromBaseTest {
 		return m;
 	}
 	
-//	public static double[] getBiggestAverageSimilarity(double[][] m){
-//		
-//		int index=0,dim = m.length;
-//		double[] bAverageVector = new double[2];
-//		double average=0,sum = 0,maxAverage=-9999999999.0;
-//		for(int i=0;i<dim;i++){
-//			sum = 0;
-//			for(int j=0;j<dim;j++){
-//				sum+= m[i][j];
-//			}
-//			average = sum/(dim-1);
-//			System.out.println("AVERAGE "+average);
-//			if(average>=maxAverage){
-//				maxAverage = average;
-//				index=i;
-//			}
-//		}
-//		bAverageVector[0] = maxAverage;
-//		bAverageVector[1] = index;
-//		System.out.println((int)bAverageVector[1]);
-//		return bAverageVector;
-//	}
 	
 	public static double[] getBiggestAverageSimilarity(SimilarityMatrixElement[][] m){
 		
@@ -371,39 +303,6 @@ public class ReadLabelsFromBaseTest {
 		}
 	}
 	
-//	public static double getSimilaritiesFromNewCluster(double[][] m,ArrayList<Integer >whoOut){
-//		
-//		
-//		int numberOfOutElements = whoOut.size();
-//		int dim = m.length;
-//		//TODO finish method
-//		double siAverage = 0;
-//		double saAverage = 0;
-//		double diff = 0;
-//		double maxDiff = -99999999;
-//		for(int i=0;i<dim;i++){
-//			siAverage = 0;
-//			saAverage = 0;
-//			diff = 0;
-//			for(int j=0;j<dim;j++){
-//				if(i!=j){
-//					if(whoOut.contains(j)){
-//						saAverage+=m[i][j];
-//					}
-//					else{
-//						siAverage+=m[i][j];
-//					}
-//				}
-//			}
-//			diff = (siAverage/((dim-1)-numberOfOutElements)) - (saAverage/(numberOfOutElements));
-//			if(maxDiff<=diff){
-//				maxDiff = diff;
-//			}
-//		}
-//		System.out.println("MAX "+maxDiff);
-//		
-//		return maxDiff;
-//	}
 	
 	public static double getSimilaritiesFromNewCluster(SimilarityMatrixElement[][] m,ArrayList<Integer>whoOut){
 		
@@ -440,15 +339,17 @@ public class ReadLabelsFromBaseTest {
 	}
 	
 	public static void printClusterList(ArrayList<Cluster> clusterList){
+		System.out.println("#Clusters  -- "+clusterList.size());
 		System.out.print("[ ");
 		for(int i=0;i<clusterList.size();i++){
+			System.out.println("#Elements "+clusterList.get(i).getElements().size());
 			System.out.print("( ");
 			for(int j=0;j<clusterList.get(i).getElements().size();j++){
-				System.out.print(clusterList.get(i).getElements().get(j).getInstace().toString()+"  ");
+				System.out.print(clusterList.get(i).getElements().get(j).getInstace().toString()+" , ");
 			}
-			System.out.print(") ");
+			System.out.println(") ");
 		}
-		System.out.print(" ]");
+		System.out.println("]");
 	}
 	
 	public static void addOrUpdateClusterList(ArrayList<Cluster> clusterList,Cluster cluster){
@@ -466,4 +367,108 @@ public class ReadLabelsFromBaseTest {
 		}
 		
 	}
+//	public static double getSimilaritiesFromNewCluster(double[][] m,ArrayList<Integer >whoOut){
+//	
+//	
+//	int numberOfOutElements = whoOut.size();
+//	int dim = m.length;
+//	//TODO finish method
+//	double siAverage = 0;
+//	double saAverage = 0;
+//	double diff = 0;
+//	double maxDiff = -99999999;
+//	for(int i=0;i<dim;i++){
+//		siAverage = 0;
+//		saAverage = 0;
+//		diff = 0;
+//		for(int j=0;j<dim;j++){
+//			if(i!=j){
+//				if(whoOut.contains(j)){
+//					saAverage+=m[i][j];
+//				}
+//				else{
+//					siAverage+=m[i][j];
+//				}
+//			}
+//		}
+//		diff = (siAverage/((dim-1)-numberOfOutElements)) - (saAverage/(numberOfOutElements));
+//		if(maxDiff<=diff){
+//			maxDiff = diff;
+//		}
+//	}
+//	System.out.println("MAX "+maxDiff);
+//	
+//	return maxDiff;
+//}
+	
+//	public static double[] getBiggestAverageSimilarity(double[][] m){
+//	
+//	int index=0,dim = m.length;
+//	double[] bAverageVector = new double[2];
+//	double average=0,sum = 0,maxAverage=-9999999999.0;
+//	for(int i=0;i<dim;i++){
+//		sum = 0;
+//		for(int j=0;j<dim;j++){
+//			sum+= m[i][j];
+//		}
+//		average = sum/(dim-1);
+//		System.out.println("AVERAGE "+average);
+//		if(average>=maxAverage){
+//			maxAverage = average;
+//			index=i;
+//		}
+//	}
+//	bAverageVector[0] = maxAverage;
+//	bAverageVector[1] = index;
+//	System.out.println((int)bAverageVector[1]);
+//	return bAverageVector;
+//}
+	
+//	public static double[][] getSimilarityMatrix(){
+//	
+//	
+//	double[][] m = {
+//			{ 0.0, 4.47, 4.0, 2.0, 2.24,2.83 },
+//            { 4.47, 0.0, 2.0, 4.0, 2.24,7.21 },
+//            { 4.0, 2.0, 0.0, 4.47, 2.24,6.32 },
+//            { 2.0, 4.0, 4.47, 0.0, 2.24, 4.47 },
+//            { 2.24, 2.24, 2.24, 2.24, 0.0,5.0 },
+//            { 2.83, 7.21, 6.32, 4.47, 5.0,0.0 },
+//        };
+//	
+//	return m;
+//}
+	
+//	public static double[][] getSimilarityMatrix(Cluster cluster){
+//	
+//	int dim = cluster.getElements().size();
+//	double[][] m = new double[dim][dim];
+//	
+//	for(int i=0;i<dim;i++){
+//		for(int j=0;j<dim;j++){
+//			if(i!=j){
+//				m[i][j] = getEuclideanDistance(cluster.getElements().get(i).getLabelsArray(),cluster.getElements().get(j).getLabelsArray() );
+//			}
+//			else{
+//				m[i][j] = 0;
+//			}
+//		}
+//	}
+//	return m;
+//}
+	
+//	for(int k=0;k<instanceAndLabelsMap.size();k++){
+//	instanceAndLabelsMap.keySet().iterator()
+//	System.out.println(instanceAndLabelsMap.get(instanceAndLabelsMap.keySet()));
+//}
+
+
+//System.out.println(instances.get(0).toDoubleArray()[73]);
+//
+//System.out.println(mInstances.getFeatureAttributes().size());
+//int s = mInstances.getFeatureIndices()[0];
+//System.out.println(s);
+//
+//int t = mInstances.getLabelIndices()[0];
+//System.out.println(t);
 }

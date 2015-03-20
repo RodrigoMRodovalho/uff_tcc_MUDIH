@@ -47,5 +47,20 @@ public class Cluster {
 		
 	}
 	
+	public void printCluster(){
+		System.out.println("#############CLUSTER#########");
+		System.out.println("Cluster ID:"+this.id);
+		System.out.println("Cluster FATHER_ID:"+this.father_id);
+		System.out.println("Cluster Elements:  ");
+		for(int i=0;i<this.elements.size();i++){
+			System.out.println("Element ID: "+(this.elements.get(i).getId()));
+			System.out.print("Element Labels: ");
+			for(int j=0;j<this.elements.get(i).getLabelsArray().length;j++){
+				System.out.print(this.elements.get(i).getLabelsArray()[j]+"  ");
+			}
+			System.out.println();
+		}
+		System.out.println("s############END##############");
+	}
 	
 }

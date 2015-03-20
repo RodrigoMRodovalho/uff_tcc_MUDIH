@@ -151,6 +151,7 @@ public class ReadLabelsFromBaseTest {
 		SimilarityMatrixElement [][] sMatrix;
 		Cluster clus;
 		double[] biggestAverageAndID;
+		
 		//double[] similarities;
 		do{
 			printClusterList(clusterList);
@@ -159,24 +160,25 @@ public class ReadLabelsFromBaseTest {
 			//sMatrix = getSimilarityMatrix();
 			biggestAverageAndID = getBiggestAverageSimilarity(sMatrix);
 			Cluster	clus2 = new Cluster();
+			whoOut = new ArrayList<Integer>();
 			clus2.setId(id);
 			id++;
 			while(biggestAverageAndID[0]>0){
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     				Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
-				addOrUpdateClusterList(clusterList, clus);
-//				Cluster	clus2 = new Cluster();
-//				clus2.setId(id);
-//				id++;
+                Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
+				System.out.println("REMOVED ELEMENT ID  "+elementRemoved.getId());
+                clus.printCluster();
+				//addOrUpdateClusterList(clusterList, clus);
 				clus2.addElement(elementRemoved);
-				addOrUpdateClusterList(clusterList, clus2);
-				whoOut = new ArrayList<Integer>();
+				clus2.printCluster();
+				//addOrUpdateClusterList(clusterList, clus2);
 				whoOut.add((int)biggestAverageAndID[1]);
-				biggestAverageAndID[0] = getSimilaritiesFromNewCluster(sMatrix,whoOut);
-				printClusterList(clusterList);
+				System.out.println("WHO OUT:  "+whoOut.toString());
+				biggestAverageAndID = getSimilaritiesFromNewCluster(sMatrix,whoOut);
+				//printClusterList(clusterList);
 			}
+			clusterList.add(clus2);
 			j++;
 		}while(!hasTwoElementsPerCluster(clusterList));	
-		
 		
 	}
 	
@@ -218,7 +220,8 @@ public class ReadLabelsFromBaseTest {
 				cluster = clusters.get(i);
 			}
 		}
-		
+		System.out.println("BIGGEST CLUSTER");
+		cluster.printCluster();
 		return cluster;
 	}
 	
@@ -226,10 +229,10 @@ public class ReadLabelsFromBaseTest {
 		
 		for(int i=0;i<elements.size();i++){
 			if(elements.get(i).getElements().size()>2){
-				return true;
+				return false;
 			}
 		}
-		return false;
+		return true;
 	}
 	
 	
@@ -249,9 +252,19 @@ public class ReadLabelsFromBaseTest {
 				}
 			}
 		}
+		printMatrix(m);
 		return m;
 	}
 	
+	public static void printMatrix(SimilarityMatrixElement[][] m){
+		int dim = m.length;
+		for(int i=0;i<dim;i++){
+			for(int j=0;j<dim;j++){
+				m[i][j].printSimiliarityElement();
+			}
+			System.out.println();
+		}
+	}
 	
 	public static SimilarityMatrixElement[][] getSimilarityMatrix(){
 		
@@ -281,7 +294,7 @@ public class ReadLabelsFromBaseTest {
 				id=m[i][j].getId();
 			}
 			average = sum/(dim-1);
-			System.out.println("AVERAGE "+average);
+			System.out.printf("AVERAGE %.2f\n",average);
 			if(average>=maxAverage){
 				maxAverage = average;
 				index=id;
@@ -289,7 +302,8 @@ public class ReadLabelsFromBaseTest {
 		}
 		bAverageVector[0] = maxAverage;
 		bAverageVector[1] = index;
-		System.out.println((int)bAverageVector[1]);
+		System.out.printf("Maior similaridade %.2f\n",maxAverage);
+		System.out.println("Sai do grupo o elemento: "+((int)bAverageVector[1]));
 		return bAverageVector;
 	}
 	
@@ -304,38 +318,45 @@ public class ReadLabelsFromBaseTest {
 	}
 	
 	
-	public static double getSimilaritiesFromNewCluster(SimilarityMatrixElement[][] m,ArrayList<Integer>whoOut){
+	public static double[] getSimilaritiesFromNewCluster(SimilarityMatrixElement[][] m,ArrayList<Integer>whoOut){
 		
-		
+		double[] maxDiffVector = new double[2];
 		int numberOfOutElements = whoOut.size();
 		int dim = m.length;
+		int index=-1;
 		//TODO finish method
 		double siAverage = 0;
 		double saAverage = 0;
 		double diff = 0;
 		double maxDiff = -99999999;
 		for(int i=0;i<dim;i++){
-			siAverage = 0;
-			saAverage = 0;
-			diff = 0;
-			for(int j=0;j<dim;j++){
-				if(i!=j){
-					if(whoOut.contains(j)){
-						saAverage+=m[i][j].getDistance();
-					}
-					else{
-						siAverage+=m[i][j].getDistance();
+			if(!whoOut.contains(m[i][0].getId())){
+				siAverage = 0;
+				saAverage = 0;
+				diff = 0;
+				for(int j=0;j<dim;j++){
+					if(i!=j){
+						if(whoOut.contains(m[i][j].getId())){
+							saAverage+=m[i][j].getDistance();
+						}
+						else{
+							siAverage+=m[i][j].getDistance();
+						}
 					}
 				}
-			}
-			diff = (siAverage/((dim-1)-numberOfOutElements)) - (saAverage/(numberOfOutElements));
-			if(maxDiff<=diff){
-				maxDiff = diff;
-			}
+				diff = (siAverage/((dim-1)-numberOfOutElements)) - (saAverage/(numberOfOutElements));
+				
+				System.out.printf("Elemento %d  , Si =  %.2f   , Sa = %.2f , diff = %.2f\n",m[i][0].getId(),(siAverage/((dim-1)-numberOfOutElements)),(saAverage/(numberOfOutElements)),diff);
+				if(maxDiff<=diff){
+					maxDiff = diff;
+					index = m[i][0].getId();
+				}
+		     }
 		}
-		System.out.println("MAX "+maxDiff);
-		
-		return maxDiff;
+		System.out.printf("Elemento %d com MAX %.2f\n",index,maxDiff);
+		maxDiffVector[0] = maxDiff;
+		maxDiffVector[1] = index;
+		return maxDiffVector;
 	}
 	
 	public static void printClusterList(ArrayList<Cluster> clusterList){

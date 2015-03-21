@@ -23,7 +23,6 @@ public class SimilarityMatrixElement {
 	}
 	
 	public void printSimiliarityElement(){
-		//System.out.printf("["+this.id+";"+this.distance+"]    ");
 		System.out.printf("[%d;%.2f]    ", this.id,this.distance);
 	}
 	

@@ -1,5 +1,8 @@
 package br.com.uff.tcc.rrodovalho;
 
+import java.sql.Timestamp;
+import java.util.Calendar;
+
 import mulan.data.InvalidDataFormatException;
 import mulan.data.MultiLabelInstances;
 
@@ -13,10 +16,14 @@ public class DivisiveHierarchicalClusteringTest {
 				
 		MultiLabelInstances mInstances = new MultiLabelInstances(arffPath,xmlPath);
 		
-		DivisiveHierarchicalClustering method = new DivisiveHierarchicalClustering(mInstances);
+		System.out.println("CARDINALITY "+mInstances.getCardinality());
 		
+		DivisiveHierarchicalClustering method = new DivisiveHierarchicalClustering(mInstances);
+		Timestamp currentTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+		System.out.println("Started at "+currentTimestamp.toString());
 		method.build();
-
+		currentTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+		System.out.println("Finished at "+currentTimestamp.toString());
 	}
 
 }

@@ -8,7 +8,7 @@ import mulan.data.MultiLabelInstances;
 
 public class DivisiveHierarchicalClusteringTest {
 
-	public static void main(String[] args) throws InvalidDataFormatException {
+	public static void main(String[] args) throws InvalidDataFormatException, CloneNotSupportedException {
 		
 		String arffPath = "D:\\workspace_TCC_DEV\\tcc_development\\mulan\\data\\emotionsLess.arff";
 		

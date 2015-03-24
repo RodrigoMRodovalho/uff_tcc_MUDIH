@@ -1,12 +1,31 @@
 package br.com.uff.tcc.rrodovalho;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-public class Cluster {
-	
+
+public class Cluster{
+		
+	/**
+	 * 
+	 */
 	private int id;
 	private int father_id;
 	ArrayList<Element> elements = new ArrayList<Element>();
+	
+	public Cluster(){
+		
+	}
+	
+	public Cluster(int id,int father_id,ArrayList<Element> elements){
+		this.id = id;
+		this.father_id = father_id;
+		this.elements = elements;
+	}
 	
 	public int getId() {
 		return id;
@@ -62,5 +81,29 @@ public class Cluster {
 		}
 		System.out.println("s############END##############");
 	}
+	
+//    @Override
+//    protected Object clone() throws CloneNotSupportedException {
+//    	Cluster cloned = (Cluster)super.clone();
+//        return cloned;
+//    }
+	
+	 public static Object clone(Object copyObject) {
+		    try {
+		      ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
+		      ObjectOutputStream oos = new ObjectOutputStream(baos);
+		      oos.writeObject(copyObject);
+		      ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+		      ObjectInputStream ois = new ObjectInputStream(bais);
+		      Object deepCopy = ois.readObject();
+		      return deepCopy;
+		    } catch (IOException e) {
+		      e.printStackTrace();
+		    } catch(ClassNotFoundException e) {
+		      e.printStackTrace();
+		    }
+		    return null;
+	}
+     
 	
 }

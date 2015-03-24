@@ -14,6 +14,7 @@ public class Element {
 		this.instace = instace;
 		this.labelsArray = labelsArray;
 	}
+	
 	public int getId() {
 		return id;
 	}

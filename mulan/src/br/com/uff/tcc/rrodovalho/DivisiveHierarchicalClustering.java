@@ -3,11 +3,9 @@ package br.com.uff.tcc.rrodovalho;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import mulan.data.MultiLabelInstances;
 import weka.core.Instance;
 import weka.core.Instances;
-import mulan.data.InvalidDataFormatException;
-import mulan.data.LabelsMetaData;
-import mulan.data.MultiLabelInstances;
 
 
 public class DivisiveHierarchicalClustering {
@@ -47,19 +45,28 @@ public class DivisiveHierarchicalClustering {
 	public void build(){
 		
 		ArrayList<ArrayList<Cluster>> arrayArrayCluster = new ArrayList<ArrayList<Cluster>>();
-		int j=1;
+		ArrayList<Cluster> aux;
+		int j=0;
+		int id=1;
 		ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
 		ArrayList<Integer> whoOut;
 		Cluster root = new Cluster();
 		root.setElements(getElementsArray());
+		root.setId(id);
+		root.setFather_id(-1);
+		System.out.println("ROOT SIZE "+root.getElements().size());
+		aux = new ArrayList<Cluster>();
+		//Cluster root_clone = (Cluster) Cluster.clone(root);
+		//System.out.println("ROOT SIZE CLONE "+root_clone.getElements().size());
+		aux.add(j,root);
+		arrayArrayCluster.add(j,aux);
 		clusterList.add(root);
-		arrayArrayCluster.add(clusterList);
 		SimilarityMatrixElement [][] sMatrix;
 		Cluster clus;
 		double[] biggestAverageAndID;
-		ArrayList<Cluster> aux;
+		
 		do{
-			//printClusterList(clusterList);
+			printClusterList(clusterList);
 			clus = getBiggestCluster(clusterList);
 			sMatrix = getSimilarityMatrix(clus);
 			biggestAverageAndID = getBiggestAverageSimilarity(sMatrix);
@@ -68,13 +75,34 @@ public class DivisiveHierarchicalClustering {
 			//System.out.println("Cluster Cardinality "+getCardinalityByCluster(clus));
 			//System.out.println("Cardinality "+getCardinalityByCluster(clus));
 			while(biggestAverageAndID[0]>0){
-                Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
+				
+				 Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
 				//System.out.println("REMOVED ELEMENT ID  "+elementRemoved.getId());
-				clus.printCluster();
+				//clus.printCluster();
                 //System.out.println("Cardinality "+getCardinalityByCluster(clus));
+                
+                //clus2.addElement(new Element(elementRemoved.getId(),elementRemoved.getInstace(),elementRemoved.getLabelsArray()));
                 clus2.addElement(elementRemoved);
+                
+                //ArrayList<Cluster> aux2 = new ArrayList<Cluster>();
+                //int clus_ID = clus.getId();              
+//                Cluster clus_clone = (Cluster)Cluster.clone(clus);
+//                Cluster clus2_clone = (Cluster)Cluster.clone(clus2);
+//                id++;
+//                clus_clone.setId(id);
+//                clus_clone.setElements(clus.getElements());
+//                clus_clone.setFather_id(clus_ID);
+//                id++;
+//                clus2_clone.setId(id);
+//                
+//                clus2_clone.setFather_id(clus_ID);
+//                clus2_clone.setElements(clus2.getElements());
+                //aux2.add(new Cluster(clus.getId(),clus.getFather_id(),clus.getElements()));
+                //aux2.add(new Cluster(clus2.getId(),clus2.getFather_id(),clus2.getElements()));
+                //j++;
+                //arrayArrayCluster.add(j,aux2);
                 //System.out.println("Cardinality "+getCardinalityByCluster(clus2));
-				clus2.printCluster();
+				//clus2.printCluster();
                 //System.out.println("Cluster Cardinality "+getCardinalityByCluster(clus2));
 				whoOut.add((int)biggestAverageAndID[1]);
 				//System.out.println("WHO OUT:  "+whoOut.toString());
@@ -83,24 +111,30 @@ public class DivisiveHierarchicalClustering {
 //				aux.add(clus);
 //				aux.add(clus2);
 //				arrayArrayCluster.add(aux);
+				printClusterList(clusterList);
 			}
+			//clusterList.add(new Cluster(clus2.getId(),clus2.getFather_id(),clus2.getElements()));
 			clusterList.add(clus2);
-			arrayArrayCluster.add(clusterList);
+			//arrayArrayCluster.add(clusterList);
 			//printCardinalitiesByClusterList(clusterList);
-			j++;
 		}while(!hasXElementsPerCluster(clusterList,2));
 		//x(arrayArrayCluster);
+		System.out.println(arrayArrayCluster.size());
 		//printClusterList(clusterList);
 		divideToUniqueElementsPerCluster(clusterList);
 		System.out.println("\n\n");
-		//printClusterList(clusterList);
+		printClusterList(clusterList);
 	}
 	
 	public void x(ArrayList<ArrayList<Cluster>> c){
 		
 		for(int i=0;i<c.size();i++){
-			printCardinalitiesByClusterList(c.get(i));
-			System.out.println();
+			//printCardinalitiesByClusterList(c.get(i));
+		   System.out.println("INDEX : "+i);
+			ArrayList<Cluster> a = c.get(i);
+		    for(int j=0;j<a.size();j++){
+		    	a.get(j).printCluster();
+		    }
 		}
 	}
 	

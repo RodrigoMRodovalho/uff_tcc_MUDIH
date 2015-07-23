@@ -4,7 +4,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import br.com.uff.tcc.rrodovalho.DivisiveHierarchicalClustering;
+import br.com.uff.tcc.rrodovalho.core.DivisiveHierarchicalClustering;
 import mulan.data.InvalidDataFormatException;
 import mulan.data.MultiLabelInstances;
 

@@ -1,8 +1,10 @@
-package br.com.uff.tcc.rrodovalho;
+package br.com.uff.tcc.rrodovalho.core;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import br.com.uff.tcc.rrodovalho.Cluster;
+import br.com.uff.tcc.rrodovalho.Element;
 import br.com.uff.tcc.rrodovalho.distance.EuclideanDistance;
 import br.com.uff.tcc.rrodovalho.domain.ClusterOfLabels;
 import br.com.uff.tcc.rrodovalho.domain.Label;

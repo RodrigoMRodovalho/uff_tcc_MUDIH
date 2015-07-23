@@ -3,87 +3,111 @@ package br.com.uff.tcc.rrodovalho;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import br.com.uff.tcc.rrodovalho.distance.EuclideanDistance;
+import br.com.uff.tcc.rrodovalho.domain.ClusterOfLabels;
+import br.com.uff.tcc.rrodovalho.domain.Label;
+import br.com.uff.tcc.rrodovalho.domain.Measure;
+import br.com.uff.tcc.rrodovalho.domain.SimilarityMatrix;
+import br.com.uff.tcc.rrodovalho.domain.SimilarityMatrixElement;
 import mulan.data.MultiLabelInstances;
 import weka.core.Instance;
 import weka.core.Instances;
 
 
 public class DivisiveHierarchicalClustering {
+	
 	private MultiLabelInstances mInstances;
+	private String[] labelNames;
+	private boolean log= false;
+	private SimilarityMatrix originalSimilarityMatrixx;
 	
 	public DivisiveHierarchicalClustering(MultiLabelInstances mInstances){
 		this.mInstances = mInstances;
+		labelNames = this.mInstances.getLabelNames();
 	}
 	
-	public ArrayList<Element> getElementsArray(){
+	public ArrayList<Label> getLabelsArray(){
 		
 		int [] indexOfLabels = mInstances.getLabelIndices();
 		Instances instances = mInstances.getDataSet();
-				
-		ArrayList<Element> elements = new ArrayList<Element>();
-		
-		int id=0;
+		int numInstances = mInstances.getNumInstances();
+		int instanceIndex =0;
+		ArrayList<Label> labels = new ArrayList<Label>();
 		double[] aux = null;
-		int classificationLabelsArray[] = null;
-	    for (Iterator<?> iterator = instances.iterator(); iterator.hasNext();) {
-			Instance instance = (Instance) iterator.next();
+		
+	 	
+		for(int index=0;index<mInstances.getNumLabels();index++){	
 			
-			aux = instance.toDoubleArray();
-			classificationLabelsArray = new int[indexOfLabels.length];
-			for(int i=0;i<indexOfLabels.length;i++){
-				classificationLabelsArray[i] = (int) aux[indexOfLabels[i]];
-				//System.out.println(classificationLabelsArray[i]);
-			}
-			
-			elements.add(new Element(id,instance,classificationLabelsArray));
-			id++;
+			labels.add(new Label(index, labelNames[index], new int[numInstances]));
 		}
-	    
-	    return elements;
+		for (Iterator<?> iterator = instances.iterator(); iterator.hasNext();) {
+			Instance instance = (Instance) iterator.next();
+			aux = instance.toDoubleArray();
+						
+			for(int i=0;i<mInstances.getNumLabels();i++){
+				labels.get(i).getClassificationArray()[instanceIndex] = (int)aux[indexOfLabels[i]];
+			}
+			instanceIndex++;
+			
+		}
+		return labels;
 	}
 	
+			
 	public void build(){
 		
-		ArrayList<ArrayList<Cluster>> arrayArrayCluster = new ArrayList<ArrayList<Cluster>>();
-		ArrayList<Cluster> aux;
+		ArrayList<ArrayList<ClusterOfLabels>> arrayArrayCluster = new ArrayList<ArrayList<ClusterOfLabels>>();
+		ArrayList<ClusterOfLabels> aux;
 		int j=0;
 		int id=1;
-		ArrayList<Cluster> clusterList = new ArrayList<Cluster>();
+		ArrayList<ClusterOfLabels> clusterList = new ArrayList<ClusterOfLabels>();
 		ArrayList<Integer> whoOut;
-		Cluster root = new Cluster();
-		root.setElements(getElementsArray());
+		ClusterOfLabels root = new ClusterOfLabels();
+		root.setLabels(getLabelsArray());
 		root.setId(id);
 		root.setFather_id(-1);
-		System.out.println("ROOT SIZE "+root.getElements().size());
-		aux = new ArrayList<Cluster>();
+		System.out.println("ROOT SIZE "+root.getLabels().size());
+		aux = new ArrayList<ClusterOfLabels>();
 		//Cluster root_clone = (Cluster) Cluster.clone(root);
 		//System.out.println("ROOT SIZE CLONE "+root_clone.getElements().size());
 		aux.add(j,root);
 		arrayArrayCluster.add(j,aux);
 		clusterList.add(root);
-		SimilarityMatrixElement [][] sMatrix;
-		Cluster clus;
-		double[] biggestAverageAndID;
+		SimilarityMatrix sMatrix;
+		ClusterOfLabels clus;
+		//initializeOriginalSimilarityMatrix(root);
+		initializeOriginalSimilarityMatrixx(root);
+		//originalSimilarityMatrixx.print();
+		Measure biggestAverage;
+		//double[] biggestAverageAndID;
+		printClusterList(clusterList);
 		
 		do{
-			printClusterList(clusterList);
+			
+			//printClusterList(clusterList);
 			clus = getBiggestCluster(clusterList);
-			sMatrix = getSimilarityMatrix(clus);
-			biggestAverageAndID = getBiggestAverageSimilarity(sMatrix);
-			Cluster	clus2 = new Cluster();
+			sMatrix = getSimilarityMatrixx(clus);
+			System.out.println("\n");
+			log=false;
+			biggestAverage = getBiggestAverageSimilarityy(sMatrix);
+			ClusterOfLabels	clus2 = new ClusterOfLabels();
 			whoOut = new ArrayList<Integer>();
+			
 			//System.out.println("Cluster Cardinality "+getCardinalityByCluster(clus));
 			//System.out.println("Cardinality "+getCardinalityByCluster(clus));
-			while(biggestAverageAndID[0]>0){
-				
-				 Element elementRemoved = clus.removeElement((int)biggestAverageAndID[1]);
+			while(biggestAverage.getValue()>=0){
+
+				Label labelRemoved = clus.removeLabel(biggestAverage.getID());
+				log=false;
+				if(log)labelRemoved.print();
+				 
 				//System.out.println("REMOVED ELEMENT ID  "+elementRemoved.getId());
 				//clus.printCluster();
                 //System.out.println("Cardinality "+getCardinalityByCluster(clus));
                 
                 //clus2.addElement(new Element(elementRemoved.getId(),elementRemoved.getInstace(),elementRemoved.getLabelsArray()));
-                clus2.addElement(elementRemoved);
-                
+                clus2.addLabel(labelRemoved);
+                //clus2.printCluster();
                 //ArrayList<Cluster> aux2 = new ArrayList<Cluster>();
                 //int clus_ID = clus.getId();              
 //                Cluster clus_clone = (Cluster)Cluster.clone(clus);
@@ -104,40 +128,43 @@ public class DivisiveHierarchicalClustering {
                 //System.out.println("Cardinality "+getCardinalityByCluster(clus2));
 				//clus2.printCluster();
                 //System.out.println("Cluster Cardinality "+getCardinalityByCluster(clus2));
-				whoOut.add((int)biggestAverageAndID[1]);
+				whoOut.add(biggestAverage.getID());
+//				System.out.print("\nWHOOUT   ");
+//				for(int i=0;i<whoOut.size();i++){
+//					System.out.print(whoOut.get(i)+"   ");
+//				}
+//				System.out.println("\n");
+				
 				//System.out.println("WHO OUT:  "+whoOut.toString());
-				biggestAverageAndID = getSimilaritiesFromNewCluster(sMatrix,whoOut);
+				log=false;
+				biggestAverage = getSimilaritiesFromNewClusterr(sMatrix,whoOut);
+				
 //				aux = new ArrayList<Cluster>();
 //				aux.add(clus);
 //				aux.add(clus2);
 //				arrayArrayCluster.add(aux);
+				if(clus2.getLabels().size()==1){
+					clusterList.add(clus2);
+				}
+				
 				printClusterList(clusterList);
+				//printCluster(clus2);
 			}
 			//clusterList.add(new Cluster(clus2.getId(),clus2.getFather_id(),clus2.getElements()));
-			clusterList.add(clus2);
+			//clusterList.add(clus2);
 			//arrayArrayCluster.add(clusterList);
 			//printCardinalitiesByClusterList(clusterList);
-		}while(!hasXElementsPerCluster(clusterList,2));
+		}while(!hasXLabelsPerCluster(clusterList,2));
 		//x(arrayArrayCluster);
-		System.out.println(arrayArrayCluster.size());
+		System.out.println("\nOUT OF THE MAIN WHILE");
+		//System.out.println(arrayArrayCluster.size());
 		//printClusterList(clusterList);
-		divideToUniqueElementsPerCluster(clusterList);
+		log=false;
+		divideToUniqueLabelPerCluster(clusterList);
 		System.out.println("\n\n");
 		printClusterList(clusterList);
 	}
-	
-	public void x(ArrayList<ArrayList<Cluster>> c){
 		
-		for(int i=0;i<c.size();i++){
-			//printCardinalitiesByClusterList(c.get(i));
-		   System.out.println("INDEX : "+i);
-			ArrayList<Cluster> a = c.get(i);
-		    for(int j=0;j<a.size();j++){
-		    	a.get(j).printCluster();
-		    }
-		}
-	}
-	
 	public void printCardinalitiesByClusterList(ArrayList<Cluster> clusterList){
 		
 		for(int i=0;i<clusterList.size();i++){
@@ -171,209 +198,211 @@ public class DivisiveHierarchicalClustering {
 		cardinality = sum/tam;
 		
 		return cardinality;
-		
-		
-		
-//		//LabelsMetaData labelsMetaData = this.mInstances.getLabelsMetaData();
-//		
-//		String xmlPath = "D:\\workspace_TCC_DEV\\tcc_development\\mulan\\data\\emotions.xml";
-//		
-//		Instance instance = cluster.getElements().get(0).getInstace();
-//		
-//		System.out.println("Instance "+instance);
-//		System.out.println("Cluster Size "+cluster.getElements().size());
-//		for(int i=1;i<cluster.getElements().size();i++){
-//			instance = instance.mergeInstance(cluster.getElements().get(i).getInstace());
-//		}
-//		System.out.println("Instance Merged "+instance);
-//				
-//		Instances instances = new Instances(instance.dataset());
-//			
-//		MultiLabelInstances mInstances = null;
-//		try {
-////			mInstances = new MultiLabelInstances(instances, labelsMetaData);
-//			mInstances = new MultiLabelInstances(instances, xmlPath);
-//			System.out.println("Numero de instancias "+mInstances.getNumInstances());
-//		
-//		} catch (InvalidDataFormatException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//			
-//		return mInstances.getCardinality();
 	}
 	
-	public void divideToUniqueElementsPerCluster(ArrayList<Cluster> clusterList){
+	public void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList){
 		
-		Cluster cluster;
-		SimilarityMatrixElement[][] sMatrix;
+		ClusterOfLabels cluster;
+		SimilarityMatrix sMatrix;
 		int index = 0;
 		double similarityAverage;
 		double maxSimilarityAverage = -999999999;
 		do{
 			for(int i=0;i<clusterList.size();i++){
 				cluster = clusterList.get(i);
-				if(cluster.getElements().size()>1){
-					sMatrix = getSimilarityMatrix(cluster);
-				    similarityAverage = getBiggestAverageSimilarity(sMatrix)[0];
+				if(cluster.getLabels().size()>1){
+					sMatrix = getSimilarityMatrixx(cluster);
+				    similarityAverage = getBiggestAverageSimilarityy(sMatrix).getValue();
 					if(similarityAverage>maxSimilarityAverage){
 						index = i;
 					}
 				}
 			}
 			
-			Element element = clusterList.get(index).removeElement(clusterList.get(index).getElements().get(0).getId());
-			Cluster c = new Cluster();
-			c.addElement(element);
+			Label label = clusterList.get(index).removeLabel(clusterList.get(index).getLabels().get(0).getId());
+			ClusterOfLabels c = new ClusterOfLabels();
+			c.addLabel(label);
 			clusterList.add(c);
 			
-	   }while(!hasXElementsPerCluster(clusterList,1));
+	   }while(!hasXLabelsPerCluster(clusterList,1));
 	}
 	
-	public void printClusterList(ArrayList<Cluster> clusterList){
+	public void printClusterList(ArrayList<ClusterOfLabels> clusterList){
 		System.out.println("#Clusters  -- "+clusterList.size());
 		System.out.print("[ ");
 		for(int i=0;i<clusterList.size();i++){
-			System.out.println("#Elements "+clusterList.get(i).getElements().size());
-			System.out.print("( ");
-			for(int j=0;j<clusterList.get(i).getElements().size();j++){
-				System.out.print(clusterList.get(i).getElements().get(j).getInstace().toString()+" , ");
-			}
-			System.out.println(") ");
+			printCluster(clusterList.get(i));
 		}
-		System.out.println("]");
+		System.out.println("]\n");
+	}
+	
+	public void printCluster(ClusterOfLabels cluster){
+		//System.out.println("\nCluster ID "+cluster.getId());
+		System.out.println("\n#Labels "+cluster.getLabels().size());
+		System.out.print("( ");
+		for(int j=0;j<cluster.getLabels().size();j++){
+			System.out.print(cluster.getLabels().get(j).getLabelName().toString()+" , ");
+		}
+		System.out.print(") ");
 	}
 	
 	
 	
-	public Cluster getBiggestCluster(ArrayList<Cluster> clusters){
+	public ClusterOfLabels getBiggestCluster(ArrayList<ClusterOfLabels> clusters){
 		
 		int i=0,max=0;
-		Cluster cluster = clusters.get(0);
+		ClusterOfLabels cluster = clusters.get(0);
+		max = cluster.getLabels().size();
 		
-		for(i=0;i<clusters.size();i++){
-			if(clusters.get(i).getElements().size()>max){
-				max = clusters.get(i).getElements().size();
+		for(i=1;i<clusters.size();i++){
+			if(clusters.get(i).getLabels().size()>max){
+				max = clusters.get(i).getLabels().size();
 				cluster = clusters.get(i);
 			}
 		}
-		//System.out.println("BIGGEST CLUSTER");
-		//cluster.printCluster();
 		return cluster;
 	}
 	
-	public SimilarityMatrixElement[][] getSimilarityMatrix(Cluster cluster){
-		
-		int dim = cluster.getElements().size();
-		SimilarityMatrixElement[][] m = new SimilarityMatrixElement[dim][dim];
-		
+	
+	public void initializeOriginalSimilarityMatrixx(ClusterOfLabels cluster){
+		int dim = cluster.getLabels().size();
+		originalSimilarityMatrixx = new SimilarityMatrix(dim);
+		Label l1,l2;
 		for(int i=0;i<dim;i++){
+			l1 = cluster.getLabels().get(i);
 			for(int j=0;j<dim;j++){
 				if(i!=j){
-					m[i][j] = new SimilarityMatrixElement(cluster.getElements().get(i).getId(),getEuclideanDistance(cluster.getElements().get(i).getLabelsArray(),cluster.getElements().get(j).getLabelsArray()));
+					l2 = cluster.getLabels().get(j);
+					originalSimilarityMatrixx.setSimilarityMatrixElement(i, j, 
+							new SimilarityMatrixElement(l1.getId(),EuclideanDistance.getDistance(l1, l2)));
 				}
 				else{
-					m[i][j] = new SimilarityMatrixElement(cluster.getElements().get(i).getId(),0.0);
+					originalSimilarityMatrixx.setSimilarityMatrixElement(i, j, 
+							new SimilarityMatrixElement(l1.getId(),0.0));
 				}
 			}
 		}
-		//printMatrix(m);
+		l1=null;
+		l2 = null;
+	}
+	
+	
+	public SimilarityMatrix getSimilarityMatrixx(ClusterOfLabels cluster){
+		
+		ArrayList<Label> labels = cluster.getLabels();
+		int dim = labels.size();
+		SimilarityMatrix m = new SimilarityMatrix(dim);
+		Label l1,l2;
+		for(int i=0;i<dim;i++){
+			l1 = labels.get(i);
+			for(int j=0;j<dim;j++){
+				if(i!=j){
+					l2 = labels.get(j);
+					m.setSimilarityMatrixElement(i, j, 
+							new SimilarityMatrixElement(l1.getId(),
+									originalSimilarityMatrixx.getSimilarityMatrixElement(l1.getId(), l2.getId()).getDistance()));
+				}
+				else{
+					m.setSimilarityMatrixElement(i, j, 
+							new SimilarityMatrixElement(l1.getId(),0.0));
+				}
+			}
+		}
+		if(log)m.print();
+		if(log)System.out.println("\n");
+		l1 = null;
+		l2 = null;
+		labels=null;
 		return m;
 	}
 	
-	public double[] getBiggestAverageSimilarity(SimilarityMatrixElement[][] m){
+  public Measure getBiggestAverageSimilarityy(SimilarityMatrix m){
 		
-		int index=0,id=0,dim = m.length;
-		double[] bAverageVector = new double[2];
-		double average=0,sum = 0,maxAverage=-9999999999.0;
+		int index=0,id=0,dim = m.getDim();
+		double average=0,sum = 0,maxAverage=-999999.0,aux=0;
+		StringBuilder s = null;
+		if(log)s = new StringBuilder();
 		for(int i=0;i<dim;i++){
 			sum = 0;
+			if(log)s.append("ID  " +i+" ");
 			for(int j=0;j<dim;j++){
-				sum+= m[i][j].getDistance();
-				id=m[i][j].getId();
+				aux = m.getSimilarityMatrixElement(i, j).getDistance(); 
+				if(log)s.append("  "+aux);
+				sum+=aux;
+				id=m.getSimilarityMatrixElement(i, j).getId();
 			}
+			if(log)s.append("   / "+(dim-1));
 			average = sum/(dim-1);
-			//System.out.printf("AVERAGE %.2f\n",average);
+			if(log)s.append("  =  "+average+"\n");
+						
 			if(average>=maxAverage){
 				maxAverage = average;
 				index=id;
 			}
 		}
-		bAverageVector[0] = maxAverage;
-		bAverageVector[1] = index;
-		//System.out.printf("Maior similaridade %.2f\n",maxAverage);
-		//System.out.println("Sai do grupo o elemento: "+((int)bAverageVector[1]));
-		return bAverageVector;
+		if(log)System.out.println(s);
+		if(log)System.out.println("INDEX: "+index+ "  Max Average :   "+maxAverage);
+		return new Measure(index, maxAverage);
 	}
-	
-public  double[] getSimilaritiesFromNewCluster(SimilarityMatrixElement[][] m,ArrayList<Integer>whoOut){
 		
-		double[] maxDiffVector = new double[2];
-		int numberOfOutElements = whoOut.size();
-		int dim = m.length;
-		int index=-1;
-		double siAverage = 0;
-		double saAverage = 0;
-		double diff = 0;
-		double maxDiff = -99999999;
-		for(int i=0;i<dim;i++){
-			if(!whoOut.contains(m[i][0].getId())){
-				siAverage = 0;
-				saAverage = 0;
-				diff = 0;
-				for(int j=0;j<dim;j++){
-					if(i!=j){
-						if(whoOut.contains(m[j][0].getId())){
-							saAverage+=m[i][j].getDistance();
-						}
-						else{
-							siAverage+=m[i][j].getDistance();
-						}
+  public Measure getSimilaritiesFromNewClusterr(SimilarityMatrix m,ArrayList<Integer>whoOut){
+	
+	int numberOfOutElements = whoOut.size();
+	int dim = m.getDim();
+	int index=-1;
+	double siAverage = 0,siaux=0;
+	double saAverage = 0,saaux=0;
+	double diff = 0;
+	double maxDiff = -999999;
+	StringBuilder sa=null,si=null,d = null;
+	if(log)sa = new StringBuilder();
+	if(log)si = new StringBuilder();
+	if(log)d = new StringBuilder();
+	for(int i=0;i<dim;i++){
+		if(!whoOut.contains(m.getSimilarityMatrixElement(i, 0).getId())){
+			if(log)si.append("ID:  "+m.getSimilarityMatrixElement(i, 0).getId()+"  ");
+			if(log)sa.append("ID:  "+m.getSimilarityMatrixElement(i, 0).getId()+"  ");
+			siAverage = 0;
+			saAverage = 0;
+			diff = 0;
+			for(int j=0;j<dim;j++){
+				if(i!=j){
+					if(whoOut.contains(m.getSimilarityMatrixElement(j, 0).getId())){
+						saaux = m.getSimilarityMatrixElement(i, j).getDistance();
+						if(log)sa.append(saaux+"  ");
+						saAverage+=saaux;
+					}
+					else{
+						siaux = m.getSimilarityMatrixElement(i, j).getDistance();
+						if(log)si.append(siaux+"   ");
+						siAverage+= siaux;
 					}
 				}
-				diff = (siAverage/((dim-1)-numberOfOutElements)) - (saAverage/(numberOfOutElements));
-				
-				//System.out.printf("Elemento %d  , Si =  %.2f   , Sa = %.2f , diff = %.2f\n",m[i][0].getId(),(siAverage/((dim-1)-numberOfOutElements)),(saAverage/(numberOfOutElements)),diff);
-				if(maxDiff<=diff){
-					maxDiff = diff;
-					index = m[i][0].getId();
-				}
-		     }
-		}
-		//System.out.printf("Elemento %d com MAX %.2f\n",index,maxDiff);
-		maxDiffVector[0] = maxDiff;
-		maxDiffVector[1] = index;
-		return maxDiffVector;
+			}
+			diff = (siAverage/((dim-1)-numberOfOutElements)) - (saAverage/(numberOfOutElements));
+			if(log)d.append("DIFF "+diff+"\n");
+			if(log)si.append(" / "+((dim-1)-numberOfOutElements)+"\n");
+			if(log)sa.append(" / "+numberOfOutElements+"\n");
+			if(maxDiff<=diff){
+				maxDiff = diff;
+				index = m.getSimilarityMatrixElement(i, 0).getId();
+			}
+	     }
 	}
-	
-	public boolean hasXElementsPerCluster(ArrayList<Cluster> elements,int number){
+	if(log)System.out.println(si);
+	if(log)System.out.println(sa);
+	if(log)System.out.println(d);
+	if(log)System.out.println("INDEX: "+index+ "  Max Average :   "+maxDiff);
+	return new Measure(index,maxDiff);
+}
+
+	public boolean hasXLabelsPerCluster(ArrayList<ClusterOfLabels> labels,int number){
 		
-		for(int i=0;i<elements.size();i++){
-			if(elements.get(i).getElements().size()>number){
+		for(int i=0;i<labels.size();i++){
+			if(labels.get(i).getLabels().size()>number){
 				return false;
 			}
 		}
 		return true;
-	}
-
-	public double getEuclideanDistance(int [] l1,int[] l2){
-		
-		int lenght = l1.length;
-		int sum = 0;
-		for(int i=0;i<lenght;i++){
-			sum += Math.pow(l1[i] - l2[i],2);
-		}
-		return Math.sqrt(sum);
-	}
-	
-	public  void printMatrix(SimilarityMatrixElement[][] m){
-		int dim = m.length;
-		for(int i=0;i<dim;i++){
-			for(int j=0;j<dim;j++){
-				m[i][j].printSimiliarityElement();
-			}
-			System.out.println();
-		}
-	}
-	
+	}	
 }

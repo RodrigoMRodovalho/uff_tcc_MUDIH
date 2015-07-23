@@ -1,4 +1,4 @@
-package br.com.uff.tcc.rrodovalho;
+package br.com.uff.tcc.rrodovalho.domain;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -8,23 +8,23 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 
-public class Cluster{
+public class ClusterOfLabels{
 		
 	/**
 	 * 
 	 */
 	private int id;
 	private int father_id;
-	ArrayList<Element> elements = new ArrayList<Element>();
+	ArrayList<Label> labels = new ArrayList<Label>();
 	
-	public Cluster(){
+	public ClusterOfLabels(){
 		
 	}
 	
-	public Cluster(int id,int father_id,ArrayList<Element> elements){
+	public ClusterOfLabels(int id,int father_id,ArrayList<Label> labels){
 		this.id = id;
 		this.father_id = father_id;
-		this.elements = elements;
+		this.labels = labels;
 	}
 	
 	public int getId() {
@@ -40,29 +40,29 @@ public class Cluster{
 		this.father_id = father_id;
 	}
 	
-	public void addElement(Element element){
-		this.elements.add(element);
+	public void addLabel(Label label){
+		this.labels.add(label);
 	}
 	
-	public ArrayList<Element> getElements(){
-		return this.elements;
+	public ArrayList<Label> getLabels(){
+		return this.labels;
 	}
 	
-	public void setElements(ArrayList<Element> elements){
-		this.elements = elements;
+	public void setLabels(ArrayList<Label> labels){
+		this.labels = labels;
 	}
 	
-	public Element removeElement(int elementID){
+	public Label removeLabel(int labelID){
 		
-		Element element=null;
-		for(int i=0;i<this.elements.size();i++){
-			if(this.elements.get(i).getId()==elementID){
-				element = this.elements.get(i);
-				this.elements.remove(i);
+		Label label=null;
+		for(int i=0;i<this.labels.size();i++){
+			if(this.labels.get(i).getId()==labelID){
+				label = this.labels.get(i);
+				this.labels.remove(i);
 				break;
 			}
 		}
-		return element;
+		return label;
 		
 	}
 	
@@ -70,13 +70,9 @@ public class Cluster{
 		System.out.println("#############CLUSTER#########");
 		System.out.println("Cluster ID:"+this.id);
 		System.out.println("Cluster FATHER_ID:"+this.father_id);
-		System.out.println("Cluster Elements:  ");
-		for(int i=0;i<this.elements.size();i++){
-			System.out.println("Element ID: "+(this.elements.get(i).getId()));
-			System.out.print("Element Labels: ");
-			for(int j=0;j<this.elements.get(i).getLabelsArray().length;j++){
-				System.out.print(this.elements.get(i).getLabelsArray()[j]+"  ");
-			}
+		System.out.println("Cluster Labels:  ");
+		for(int i=0;i<this.labels.size();i++){
+			this.labels.get(i).print();
 			System.out.println();
 		}
 		System.out.println("############END##############");

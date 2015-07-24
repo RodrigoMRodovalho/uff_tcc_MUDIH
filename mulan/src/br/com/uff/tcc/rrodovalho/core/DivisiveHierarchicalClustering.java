@@ -83,6 +83,7 @@ public class DivisiveHierarchicalClustering {
 		Measure biggestAverage;
 		//double[] biggestAverageAndID;
 		printClusterList(clusterList);
+		printCardinalitiesByClusterList(clusterList);
 		
 		do{
 			
@@ -150,6 +151,7 @@ public class DivisiveHierarchicalClustering {
 				}
 				
 				printClusterList(clusterList);
+				printCardinalitiesByClusterList(clusterList);
 				//printCluster(clus2);
 			}
 			//clusterList.add(new Cluster(clus2.getId(),clus2.getFather_id(),clus2.getElements()));
@@ -165,14 +167,15 @@ public class DivisiveHierarchicalClustering {
 		divideToUniqueLabelPerCluster(clusterList);
 		System.out.println("\n\n");
 		printClusterList(clusterList);
+		printCardinalitiesByClusterList(clusterList);
 	}
 		
-	public void printCardinalitiesByClusterList(ArrayList<Cluster> clusterList){
-		
+	public void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
+		System.out.println("CARDINALITY\n");
 		for(int i=0;i<clusterList.size();i++){
 			System.out.println("Index "+i+": "+getCardinalityByCluster(clusterList.get(i)));
 		}
-		
+		System.out.println("\n");
 	}
 	
 	
@@ -188,20 +191,21 @@ public class DivisiveHierarchicalClustering {
 		return sum;
 	}
 	
-	public double getCardinalityByCluster(Cluster cluster) {
+	public double getCardinalityByCluster(ClusterOfLabels cluster) {
 		
-		ArrayList<Element> elements = cluster.getElements();
-		double tam = elements.size();
+		ArrayList<Label> labels = cluster.getLabels();
+		double tam = labels.size();
 		double sum=0;
 		double cardinality=0;
 		for(int i=0;i<tam;i++){
-			sum+= getNumOfLabels(elements.get(i).getLabelsArray());
+			sum+= getNumOfLabels(labels.get(i).getClassificationArray());
 		}
-		cardinality = sum/tam;
+		cardinality = sum/mInstances.getNumInstances();
 		
 		return cardinality;
 	}
 	
+		
 	public void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList){
 		
 		ClusterOfLabels cluster;

@@ -1,19 +1,22 @@
 package br.com.uff.tcc.rrodovalho.core;
 
+import java.io.File;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 
-import br.com.uff.tcc.rrodovalho.Cluster;
-import br.com.uff.tcc.rrodovalho.Element;
-import br.com.uff.tcc.rrodovalho.distance.EuclideanDistance;
+import mulan.data.MultiLabelInstances;
+import weka.core.Instance;
+import weka.core.Instances;
+import br.com.uff.tcc.rrodovalho.distance.LabelDistance;
+import br.com.uff.tcc.rrodovalho.distance.SimilarityMeasureEnum;
 import br.com.uff.tcc.rrodovalho.domain.ClusterOfLabels;
 import br.com.uff.tcc.rrodovalho.domain.Label;
 import br.com.uff.tcc.rrodovalho.domain.Measure;
 import br.com.uff.tcc.rrodovalho.domain.SimilarityMatrix;
 import br.com.uff.tcc.rrodovalho.domain.SimilarityMatrixElement;
-import mulan.data.MultiLabelInstances;
-import weka.core.Instance;
-import weka.core.Instances;
+import br.com.uff.tcc.rrodovalho.graphics.GraphViz;
 
 
 public class DivisiveHierarchicalClustering {
@@ -21,12 +24,16 @@ public class DivisiveHierarchicalClustering {
 	private MultiLabelInstances mInstances;
 	private String[] labelNames;
 	private boolean log= false;
+	private String graphOutputPath=null;
+	private String dataSetInfo = null;
 	private SimilarityMatrix originalSimilarityMatrixx;
+	private SimilarityMeasureEnum distanceMethod;
+	GraphViz gv;
 	
-	public DivisiveHierarchicalClustering(MultiLabelInstances mInstances){
-		this.mInstances = mInstances;
-		labelNames = this.mInstances.getLabelNames();
+	public DivisiveHierarchicalClustering(){
+
 	}
+
 	
 	public ArrayList<Label> getLabelsArray(){
 		
@@ -36,10 +43,8 @@ public class DivisiveHierarchicalClustering {
 		int instanceIndex =0;
 		ArrayList<Label> labels = new ArrayList<Label>();
 		double[] aux = null;
-		
 	 	
 		for(int index=0;index<mInstances.getNumLabels();index++){	
-			
 			labels.add(new Label(index, labelNames[index], new int[numInstances]));
 		}
 		for (Iterator<?> iterator = instances.iterator(); iterator.hasNext();) {
@@ -56,120 +61,132 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 			
-	public void build(){
+	public void build(MultiLabelInstances mInstances,SimilarityMeasureEnum distanceMethod){
 		
-		ArrayList<ArrayList<ClusterOfLabels>> arrayArrayCluster = new ArrayList<ArrayList<ClusterOfLabels>>();
-		ArrayList<ClusterOfLabels> aux;
-		int j=0;
-		int id=1;
+		this.mInstances = mInstances;
+		this.labelNames = this.mInstances.getLabelNames();
+		this.distanceMethod = distanceMethod;
+		this.dataSetInfo = this.mInstances.getDataSet().relationName()
+													   .concat("_L")
+													   .concat(this.mInstances.getNumLabels()+"_N")
+													   .concat(this.mInstances.getNumInstances()+"_")
+													   .concat(distanceMethod.name());
+		gv = new GraphViz();
+		
+		buildInternal(mInstances);
+	}
+	
+	private void buildInternal(MultiLabelInstances mInstances){
+		
+		Timestamp statingTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+		System.out.println("Starting build at "+statingTimestamp.toString());
+		
+		int j=1;
 		ArrayList<ClusterOfLabels> clusterList = new ArrayList<ClusterOfLabels>();
 		ArrayList<Integer> whoOut;
 		ClusterOfLabels root = new ClusterOfLabels();
-		root.setLabels(getLabelsArray());
-		root.setId(id);
-		root.setFather_id(-1);
-		System.out.println("ROOT SIZE "+root.getLabels().size());
-		aux = new ArrayList<ClusterOfLabels>();
-		//Cluster root_clone = (Cluster) Cluster.clone(root);
-		//System.out.println("ROOT SIZE CLONE "+root_clone.getElements().size());
-		aux.add(j,root);
-		arrayArrayCluster.add(j,aux);
-		clusterList.add(root);
 		SimilarityMatrix sMatrix;
-		ClusterOfLabels clus;
-		//initializeOriginalSimilarityMatrix(root);
-		initializeOriginalSimilarityMatrixx(root);
-		//originalSimilarityMatrixx.print();
 		Measure biggestAverage;
-		//double[] biggestAverageAndID;
+		ClusterOfLabels clus;
+		
+		root.setLabels(getLabelsArray());
+		root.setId(j);
+		root.setFather_id(j);
+		System.out.println("ROOT SIZE "+root.getLabels().size());
+		clusterList.add(root);
+
+		initializeOriginalSimilarityMatrixx(root);
 		printClusterList(clusterList);
 		printCardinalitiesByClusterList(clusterList);
 		
+		gv.init();
+		gv.setGraphTitle(this.dataSetInfo);
+		//gv.addln(root.getId()+";");
+		gv.addNode(root.getId(), root.toString());
+		
 		do{
 			
-			//printClusterList(clusterList);
 			clus = getBiggestCluster(clusterList);
-			sMatrix = getSimilarityMatrixx(clus);
+			//ClusterOfLabels auxClus = ClusterOfLabels.newInstance(clus);
+			ClusterOfLabels auxClus = clus.newInstance();
+			auxClus.setId(++j);
+			auxClus.setFather_id(clus.getId());
+			sMatrix = getSimilarityMatrixx(auxClus);
 			System.out.println("\n");
 			log=false;
 			biggestAverage = getBiggestAverageSimilarityy(sMatrix);
 			ClusterOfLabels	clus2 = new ClusterOfLabels();
 			whoOut = new ArrayList<Integer>();
-			
-			//System.out.println("Cluster Cardinality "+getCardinalityByCluster(clus));
-			//System.out.println("Cardinality "+getCardinalityByCluster(clus));
+			j++;
 			while(biggestAverage.getValue()>=0){
 
-				Label labelRemoved = clus.removeLabel(biggestAverage.getID());
-				log=false;
+				Label labelRemoved = auxClus.removeLabel(biggestAverage.getID());
+				log=false;;
 				if(log)labelRemoved.print();
-				 
-				//System.out.println("REMOVED ELEMENT ID  "+elementRemoved.getId());
-				//clus.printCluster();
-                //System.out.println("Cardinality "+getCardinalityByCluster(clus));
-                
-                //clus2.addElement(new Element(elementRemoved.getId(),elementRemoved.getInstace(),elementRemoved.getLabelsArray()));
                 clus2.addLabel(labelRemoved);
-                //clus2.printCluster();
-                //ArrayList<Cluster> aux2 = new ArrayList<Cluster>();
-                //int clus_ID = clus.getId();              
-//                Cluster clus_clone = (Cluster)Cluster.clone(clus);
-//                Cluster clus2_clone = (Cluster)Cluster.clone(clus2);
-//                id++;
-//                clus_clone.setId(id);
-//                clus_clone.setElements(clus.getElements());
-//                clus_clone.setFather_id(clus_ID);
-//                id++;
-//                clus2_clone.setId(id);
-//                
-//                clus2_clone.setFather_id(clus_ID);
-//                clus2_clone.setElements(clus2.getElements());
-                //aux2.add(new Cluster(clus.getId(),clus.getFather_id(),clus.getElements()));
-                //aux2.add(new Cluster(clus2.getId(),clus2.getFather_id(),clus2.getElements()));
-                //j++;
-                //arrayArrayCluster.add(j,aux2);
-                //System.out.println("Cardinality "+getCardinalityByCluster(clus2));
-				//clus2.printCluster();
-                //System.out.println("Cluster Cardinality "+getCardinalityByCluster(clus2));
+                clus2.setId(j);
+                clus2.setFather_id(auxClus.getFather_id());
 				whoOut.add(biggestAverage.getID());
-//				System.out.print("\nWHOOUT   ");
-//				for(int i=0;i<whoOut.size();i++){
-//					System.out.print(whoOut.get(i)+"   ");
-//				}
-//				System.out.println("\n");
-				
-				//System.out.println("WHO OUT:  "+whoOut.toString());
 				log=false;
 				biggestAverage = getSimilaritiesFromNewClusterr(sMatrix,whoOut);
+
+//				if(clus2.getLabels().size()==1){
+//					clusterList.add(clus2);
+//				}
 				
-//				aux = new ArrayList<Cluster>();
-//				aux.add(clus);
-//				aux.add(clus2);
-//				arrayArrayCluster.add(aux);
-				if(clus2.getLabels().size()==1){
-					clusterList.add(clus2);
-				}
-				
-				printClusterList(clusterList);
-				printCardinalitiesByClusterList(clusterList);
-				//printCluster(clus2);
 			}
-			//clusterList.add(new Cluster(clus2.getId(),clus2.getFather_id(),clus2.getElements()));
-			//clusterList.add(clus2);
-			//arrayArrayCluster.add(clusterList);
-			//printCardinalitiesByClusterList(clusterList);
+			clusterList.remove(clus);
+			clusterList.add(auxClus);
+			clusterList.add(clus2);
+			printClusterList(clusterList);
+			printCardinalitiesByClusterList(clusterList);
+			
+			clus=null;
+			
+			gv.addNode(auxClus.getId(), auxClus.toString());
+			gv.addRelation(auxClus.getFather_id(), auxClus.getId());
+			
+			gv.addNode(clus2.getId(), clus2.toString());
+			gv.addRelation(clus2.getFather_id(), clus2.getId());
+						
 		}while(!hasXLabelsPerCluster(clusterList,2));
-		//x(arrayArrayCluster);
 		System.out.println("\nOUT OF THE MAIN WHILE");
-		//System.out.println(arrayArrayCluster.size());
-		//printClusterList(clusterList);
 		log=false;
-		divideToUniqueLabelPerCluster(clusterList);
+		divideToUniqueLabelPerCluster(clusterList,j);
 		System.out.println("\n\n");
 		printClusterList(clusterList);
 		printCardinalitiesByClusterList(clusterList);
+		
+		Timestamp finishTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+		System.out.println("Build finished at "+finishTimestamp.toString());
+		
+		gv.close();
+		drawGraph();
 	}
 		
+	public void drawGraph(){
+		String type = "png";
+		String path = null;
+		if(graphOutputPath!=null){
+			path = graphOutputPath;
+		}
+		else{
+			path = "/tmp/";
+		}
+		String absolutePath = path.concat(this.dataSetInfo).concat(".") + type;
+		File out = new File(absolutePath);   // Linux
+	    gv.writeGraphToFile( gv.getGraph( gv.getDotSource(), type ), out );
+	    
+	    Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				gv.openGraph(absolutePath);
+			}
+		});
+	    t.start();
+	    //gv = null;
+	}
+	
 	public void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
 		System.out.println("CARDINALITY\n");
 		for(int i=0;i<clusterList.size();i++){
@@ -206,9 +223,9 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 		
-	public void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList){
+	public void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList,int j){
 		
-		ClusterOfLabels cluster;
+		ClusterOfLabels cluster=null;
 		SimilarityMatrix sMatrix;
 		int index = 0;
 		double similarityAverage;
@@ -225,10 +242,28 @@ public class DivisiveHierarchicalClustering {
 				}
 			}
 			
-			Label label = clusterList.get(index).removeLabel(clusterList.get(index).getLabels().get(0).getId());
-			ClusterOfLabels c = new ClusterOfLabels();
-			c.addLabel(label);
-			clusterList.add(c);
+			//ClusterOfLabels firstBro = ClusterOfLabels.newInstance(clusterList.get(index));
+			ClusterOfLabels firstBro = clusterList.get(index).newInstance();
+			firstBro.setId(++j);
+			firstBro.setFather_id(clusterList.get(index).getId());
+			Label label = firstBro.removeLabel(firstBro.getLabels().get(0).getId());
+			ClusterOfLabels secondBro = new ClusterOfLabels();
+			secondBro.setId(++j);
+			secondBro.setFather_id(firstBro.getFather_id());
+			secondBro.addLabel(label);
+			
+			clusterList.remove(clusterList.get(index));
+			clusterList.add(firstBro);
+			clusterList.add(secondBro);
+			
+			gv.addNode(firstBro.getId(), firstBro.toString());
+			gv.addRelation(firstBro.getFather_id(), firstBro.getId());
+			
+			gv.addNode(secondBro.getId(), secondBro.toString());
+			gv.addRelation(secondBro.getFather_id(), secondBro.getId());
+			
+			firstBro = null;
+			secondBro = null;
 			
 	   }while(!hasXLabelsPerCluster(clusterList,1));
 	}
@@ -243,13 +278,14 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 	public void printCluster(ClusterOfLabels cluster){
-		//System.out.println("\nCluster ID "+cluster.getId());
+		System.out.println("\nCluster ID "+cluster.getId());
+		System.out.println("Cluster Father ID "+cluster.getFather_id());
 		System.out.println("\n#Labels "+cluster.getLabels().size());
 		System.out.print("( ");
 		for(int j=0;j<cluster.getLabels().size();j++){
 			System.out.print(cluster.getLabels().get(j).getLabelName().toString()+" , ");
 		}
-		System.out.print(") ");
+		System.out.print(") \n");
 	}
 	
 	
@@ -280,7 +316,7 @@ public class DivisiveHierarchicalClustering {
 				if(i!=j){
 					l2 = cluster.getLabels().get(j);
 					originalSimilarityMatrixx.setSimilarityMatrixElement(i, j, 
-							new SimilarityMatrixElement(l1.getId(),EuclideanDistance.getDistance(l1, l2)));
+							new SimilarityMatrixElement(l1.getId(),LabelDistance.getDistance(l1, l2,this.distanceMethod)));
 				}
 				else{
 					originalSimilarityMatrixx.setSimilarityMatrixElement(i, j, 
@@ -410,5 +446,11 @@ public class DivisiveHierarchicalClustering {
 			}
 		}
 		return true;
-	}	
+	}
+	
+	//--------------------
+	public void setGraphOutputImagePath(String path){
+		this.graphOutputPath = path;
+	}
+	
 }

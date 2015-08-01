@@ -42,6 +42,13 @@ public class Label {
 		}
 		System.out.println();
 	}
+
+	@Override
+	public String toString() {
+		return this.labelName;
+	}
+	
+	
 	
 	
 }

@@ -1,24 +1,32 @@
 package br.com.uff.tcc.rrodovalho.domain;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 
 public class ClusterOfLabels{
 		
-	/**
-	 * 
-	 */
 	private int id;
 	private int father_id;
 	ArrayList<Label> labels = new ArrayList<Label>();
 	
 	public ClusterOfLabels(){
 		
+	}
+	
+//	public static ClusterOfLabels newInstance(final ClusterOfLabels cl){
+//		ClusterOfLabels c = new ClusterOfLabels();
+//		c.setId(cl.getId());
+//		c.setFather_id(cl.getFather_id());
+//		c.setLabels(cl.getLabels());
+//		return c;
+//	}
+	
+	public ClusterOfLabels newInstance(){
+		ClusterOfLabels c = new ClusterOfLabels();
+		c.setId(this.id);
+		c.setFather_id(this.father_id);
+		c.setLabels(this.labels);
+		return c;
 	}
 	
 	public ClusterOfLabels(int id,int father_id,ArrayList<Label> labels){
@@ -77,29 +85,16 @@ public class ClusterOfLabels{
 		}
 		System.out.println("############END##############");
 	}
-	
-//    @Override
-//    protected Object clone() throws CloneNotSupportedException {
-//    	Cluster cloned = (Cluster)super.clone();
-//        return cloned;
-//    }
-	
-	 public static Object clone(Object copyObject) {
-		    try {
-		      ByteArrayOutputStream baos = new ByteArrayOutputStream(4096);
-		      ObjectOutputStream oos = new ObjectOutputStream(baos);
-		      oos.writeObject(copyObject);
-		      ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-		      ObjectInputStream ois = new ObjectInputStream(bais);
-		      Object deepCopy = ois.readObject();
-		      return deepCopy;
-		    } catch (IOException e) {
-		      e.printStackTrace();
-		    } catch(ClassNotFoundException e) {
-		      e.printStackTrace();
-		    }
-		    return null;
+
+	@Override
+	public String toString() {
+		StringBuilder s = new StringBuilder();
+		for(int i=0;i<this.labels.size();i++){
+			s.append(this.labels.get(i).toString());
+			if(i!=this.labels.size()-1){
+				s.append(", ");
+			}
+		}
+		return String.valueOf(s);
 	}
-     
-	
 }

@@ -281,18 +281,30 @@ public void readSource(String input)
 	   this.graph = sb;
 }
 
-public void addNode(int id,String content,double cardinality){
+public void addNode(int id,String content,double cardinality,int iteratorCounter){
 	//addln(id+" [label=\""+content+"\"];");
 	String formattedCardinality = null;
+	String dotEntry=null;
 	if(cardinality!=0.0){
 		formattedCardinality = String.format("%.6f",cardinality);
 	}
 	else{
 		formattedCardinality = String.valueOf(cardinality);
 	}
-	addln(id+"[label=<"+content+"<BR />"+
-	        "<FONT POINT-SIZE=\"9\"><B>Card:</B> "+formattedCardinality+"</FONT>>]");
+	dotEntry = id+"[label=<"+content+"<BR />"+
+	        "<FONT POINT-SIZE=\"9\"><B>Card:</B> "+formattedCardinality+"</FONT>>";
+	if(iteratorCounter==0){
+		dotEntry = dotEntry.concat("]");
+	}
+	else{
+		dotEntry = dotEntry.concat(",xlabel=\"i = "+iteratorCounter+"\"]");
+	}
+		System.out.println(dotEntry);
+	addln(dotEntry);
+//	addln(id+"[label=<"+content+"<BR />"+
+//	        "<FONT POINT-SIZE=\"9\"><B>Card:</B> "+formattedCardinality+"</FONT>>,xlabel=\"i = "+iteratorCounter+"\"]");
 	formattedCardinality = null;
+	dotEntry = null;
 }
 
 

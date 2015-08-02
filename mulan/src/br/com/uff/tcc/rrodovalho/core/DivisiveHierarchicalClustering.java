@@ -21,6 +21,7 @@ import br.com.uff.tcc.rrodovalho.graphics.GraphViz;
 
 public class DivisiveHierarchicalClustering {
 	
+	private final static int NONE=0;
 	private MultiLabelInstances mInstances;
 	private String[] labelNames;
 	private boolean log= false;
@@ -28,6 +29,7 @@ public class DivisiveHierarchicalClustering {
 	private String dataSetInfo = null;
 	private SimilarityMatrix originalSimilarityMatrixx;
 	private SimilarityMeasureEnum distanceMethod;
+	private int iteratorCounter=0;
 	GraphViz gv;
 	
 	public DivisiveHierarchicalClustering(){
@@ -102,7 +104,7 @@ public class DivisiveHierarchicalClustering {
 		gv.init();
 		gv.setGraphTitle(this.dataSetInfo);
 		//gv.addln(root.getId()+";");
-		gv.addNode(root.getId(), root.toString(),getCardinalityByCluster(root));
+		gv.addNode(root.getId(), root.toString(),getCardinalityByCluster(root),NONE);
 		
 		do{
 			
@@ -142,11 +144,11 @@ public class DivisiveHierarchicalClustering {
 			printCardinalitiesByClusterList(clusterList);
 			
 			clus=null;
-			
-			gv.addNode(auxClus.getId(), auxClus.toString(),getCardinalityByCluster(auxClus));
+			iteratorCounter++;
+			gv.addNode(auxClus.getId(), auxClus.toString(),getCardinalityByCluster(auxClus),iteratorCounter);
 			gv.addRelation(auxClus.getFather_id(), auxClus.getId());
 			
-			gv.addNode(clus2.getId(), clus2.toString(),getCardinalityByCluster(clus2));
+			gv.addNode(clus2.getId(), clus2.toString(),getCardinalityByCluster(clus2),NONE);
 			gv.addRelation(clus2.getFather_id(), clus2.getId());
 						
 		}while(!hasXLabelsPerCluster(clusterList,2));
@@ -160,6 +162,7 @@ public class DivisiveHierarchicalClustering {
 		Timestamp finishTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
 		System.out.println("Build finished at "+finishTimestamp.toString());
 		
+		iteratorCounter=0;
 		gv.close();
 		drawGraph();
 	}
@@ -255,11 +258,11 @@ public class DivisiveHierarchicalClustering {
 			clusterList.remove(clusterList.get(index));
 			clusterList.add(firstBro);
 			clusterList.add(secondBro);
-			
-			gv.addNode(firstBro.getId(), firstBro.toString(),getCardinalityByCluster(firstBro));
+			iteratorCounter++;
+			gv.addNode(firstBro.getId(), firstBro.toString(),getCardinalityByCluster(firstBro),iteratorCounter);
 			gv.addRelation(firstBro.getFather_id(), firstBro.getId());
 			
-			gv.addNode(secondBro.getId(), secondBro.toString(),getCardinalityByCluster(secondBro));
+			gv.addNode(secondBro.getId(), secondBro.toString(),getCardinalityByCluster(secondBro),NONE);
 			gv.addRelation(secondBro.getFather_id(), secondBro.getId());
 			
 			firstBro = null;

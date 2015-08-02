@@ -35,7 +35,7 @@ public class DivisiveHierarchicalClustering {
 	}
 
 	
-	public ArrayList<Label> getLabelsArray(){
+	private ArrayList<Label> getLabelsArray(){
 		
 		int [] indexOfLabels = mInstances.getLabelIndices();
 		Instances instances = mInstances.getDataSet();
@@ -102,7 +102,7 @@ public class DivisiveHierarchicalClustering {
 		gv.init();
 		gv.setGraphTitle(this.dataSetInfo);
 		//gv.addln(root.getId()+";");
-		gv.addNode(root.getId(), root.toString());
+		gv.addNode(root.getId(), root.toString(),getCardinalityByCluster(root));
 		
 		do{
 			
@@ -143,10 +143,10 @@ public class DivisiveHierarchicalClustering {
 			
 			clus=null;
 			
-			gv.addNode(auxClus.getId(), auxClus.toString());
+			gv.addNode(auxClus.getId(), auxClus.toString(),getCardinalityByCluster(auxClus));
 			gv.addRelation(auxClus.getFather_id(), auxClus.getId());
 			
-			gv.addNode(clus2.getId(), clus2.toString());
+			gv.addNode(clus2.getId(), clus2.toString(),getCardinalityByCluster(clus2));
 			gv.addRelation(clus2.getFather_id(), clus2.getId());
 						
 		}while(!hasXLabelsPerCluster(clusterList,2));
@@ -164,7 +164,7 @@ public class DivisiveHierarchicalClustering {
 		drawGraph();
 	}
 		
-	public void drawGraph(){
+	private void drawGraph(){
 		String type = "png";
 		String path = null;
 		if(graphOutputPath!=null){
@@ -187,7 +187,7 @@ public class DivisiveHierarchicalClustering {
 	    //gv = null;
 	}
 	
-	public void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
+	private void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
 		System.out.println("CARDINALITY\n");
 		for(int i=0;i<clusterList.size();i++){
 			System.out.println("Index "+i+": "+getCardinalityByCluster(clusterList.get(i)));
@@ -196,7 +196,7 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 	
-	public int getNumOfLabels(int[] labels){
+	private int getNumOfLabels(int[] labels){
 		
 		int tam = labels.length;
 		int sum=0;
@@ -208,7 +208,7 @@ public class DivisiveHierarchicalClustering {
 		return sum;
 	}
 	
-	public double getCardinalityByCluster(ClusterOfLabels cluster) {
+	private double getCardinalityByCluster(ClusterOfLabels cluster) {
 		
 		ArrayList<Label> labels = cluster.getLabels();
 		double tam = labels.size();
@@ -223,7 +223,7 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 		
-	public void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList,int j){
+	private void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList,int j){
 		
 		ClusterOfLabels cluster=null;
 		SimilarityMatrix sMatrix;
@@ -256,10 +256,10 @@ public class DivisiveHierarchicalClustering {
 			clusterList.add(firstBro);
 			clusterList.add(secondBro);
 			
-			gv.addNode(firstBro.getId(), firstBro.toString());
+			gv.addNode(firstBro.getId(), firstBro.toString(),getCardinalityByCluster(firstBro));
 			gv.addRelation(firstBro.getFather_id(), firstBro.getId());
 			
-			gv.addNode(secondBro.getId(), secondBro.toString());
+			gv.addNode(secondBro.getId(), secondBro.toString(),getCardinalityByCluster(secondBro));
 			gv.addRelation(secondBro.getFather_id(), secondBro.getId());
 			
 			firstBro = null;
@@ -268,7 +268,7 @@ public class DivisiveHierarchicalClustering {
 	   }while(!hasXLabelsPerCluster(clusterList,1));
 	}
 	
-	public void printClusterList(ArrayList<ClusterOfLabels> clusterList){
+	private void printClusterList(ArrayList<ClusterOfLabels> clusterList){
 		System.out.println("#Clusters  -- "+clusterList.size());
 		System.out.print("[ ");
 		for(int i=0;i<clusterList.size();i++){
@@ -277,7 +277,7 @@ public class DivisiveHierarchicalClustering {
 		System.out.println("]\n");
 	}
 	
-	public void printCluster(ClusterOfLabels cluster){
+	private void printCluster(ClusterOfLabels cluster){
 		System.out.println("\nCluster ID "+cluster.getId());
 		System.out.println("Cluster Father ID "+cluster.getFather_id());
 		System.out.println("\n#Labels "+cluster.getLabels().size());
@@ -290,7 +290,7 @@ public class DivisiveHierarchicalClustering {
 	
 	
 	
-	public ClusterOfLabels getBiggestCluster(ArrayList<ClusterOfLabels> clusters){
+	private ClusterOfLabels getBiggestCluster(ArrayList<ClusterOfLabels> clusters){
 		
 		int i=0,max=0;
 		ClusterOfLabels cluster = clusters.get(0);
@@ -306,7 +306,7 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 	
-	public void initializeOriginalSimilarityMatrixx(ClusterOfLabels cluster){
+	private void initializeOriginalSimilarityMatrixx(ClusterOfLabels cluster){
 		int dim = cluster.getLabels().size();
 		originalSimilarityMatrixx = new SimilarityMatrix(dim);
 		Label l1,l2;
@@ -329,7 +329,7 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 	
-	public SimilarityMatrix getSimilarityMatrixx(ClusterOfLabels cluster){
+	private SimilarityMatrix getSimilarityMatrixx(ClusterOfLabels cluster){
 		
 		ArrayList<Label> labels = cluster.getLabels();
 		int dim = labels.size();
@@ -358,7 +358,7 @@ public class DivisiveHierarchicalClustering {
 		return m;
 	}
 	
-  public Measure getBiggestAverageSimilarityy(SimilarityMatrix m){
+	private Measure getBiggestAverageSimilarityy(SimilarityMatrix m){
 		
 		int index=0,id=0,dim = m.getDim();
 		double average=0,sum = 0,maxAverage=-999999.0,aux=0;
@@ -387,7 +387,7 @@ public class DivisiveHierarchicalClustering {
 		return new Measure(index, maxAverage);
 	}
 		
-  public Measure getSimilaritiesFromNewClusterr(SimilarityMatrix m,ArrayList<Integer>whoOut){
+ private Measure getSimilaritiesFromNewClusterr(SimilarityMatrix m,ArrayList<Integer>whoOut){
 	
 	int numberOfOutElements = whoOut.size();
 	int dim = m.getDim();
@@ -438,7 +438,7 @@ public class DivisiveHierarchicalClustering {
 	return new Measure(index,maxDiff);
 }
 
-	public boolean hasXLabelsPerCluster(ArrayList<ClusterOfLabels> labels,int number){
+   private boolean hasXLabelsPerCluster(ArrayList<ClusterOfLabels> labels,int number){
 		
 		for(int i=0;i<labels.size();i++){
 			if(labels.get(i).getLabels().size()>number){

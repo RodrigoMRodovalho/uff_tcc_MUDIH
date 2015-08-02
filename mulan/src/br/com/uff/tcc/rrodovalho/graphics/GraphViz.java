@@ -281,9 +281,22 @@ public void readSource(String input)
 	   this.graph = sb;
 }
 
-public void addNode(int id,String content){
-	addln(id+" [label=\""+content+"\"];");
+public void addNode(int id,String content,double cardinality){
+	//addln(id+" [label=\""+content+"\"];");
+	String formattedCardinality = null;
+	if(cardinality!=0.0){
+		formattedCardinality = String.format("%.6f",cardinality);
+	}
+	else{
+		formattedCardinality = String.valueOf(cardinality);
+	}
+	addln(id+"[label=<"+content+"<BR />"+
+	        "<FONT POINT-SIZE=\"9\"><B>Card:</B> "+formattedCardinality+"</FONT>>]");
+	formattedCardinality = null;
 }
+
+
+
 
 public void addRelation(int sourceNodeID,int destNodeID){
 	addln(sourceNodeID+" -- "+destNodeID+";");

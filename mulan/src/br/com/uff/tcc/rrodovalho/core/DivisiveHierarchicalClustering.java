@@ -73,6 +73,7 @@ public class DivisiveHierarchicalClustering {
 													   .concat(this.mInstances.getNumLabels()+"_N")
 													   .concat(this.mInstances.getNumInstances()+"_")
 													   .concat(distanceMethod.name());
+		ClusterOfLabels.numDataSetInstances = this.mInstances.getNumInstances();
 		gv = new GraphViz();
 		
 		buildInternal(mInstances);
@@ -94,17 +95,17 @@ public class DivisiveHierarchicalClustering {
 		root.setLabels(getLabelsArray());
 		root.setId(j);
 		root.setFather_id(j);
-		System.out.println("ROOT SIZE "+root.getLabels().size());
+		//System.out.println("ROOT SIZE "+root.getLabels().size());
 		clusterList.add(root);
 
 		initializeOriginalSimilarityMatrixx(root);
 		printClusterList(clusterList);
-		printCardinalitiesByClusterList(clusterList);
+		//printCardinalitiesByClusterList(clusterList);
 		
 		gv.init();
 		gv.setGraphTitle(this.dataSetInfo);
 		//gv.addln(root.getId()+";");
-		gv.addNode(root.getId(), root.toString(),getCardinalityByCluster(root),NONE);
+		gv.addNode(root.getId(), root.toString(),root.getCardinality(),NONE);
 		
 		do{
 			
@@ -140,24 +141,25 @@ public class DivisiveHierarchicalClustering {
 			clusterList.remove(clus);
 			clusterList.add(auxClus);
 			clusterList.add(clus2);
-			printClusterList(clusterList);
-			printCardinalitiesByClusterList(clusterList);
+			//printCardinalitiesByClusterList(clusterList);
 			
 			clus=null;
 			iteratorCounter++;
-			gv.addNode(auxClus.getId(), auxClus.toString(),getCardinalityByCluster(auxClus),iteratorCounter);
+			
+			printClusterList(clusterList);
+			gv.addNode(auxClus.getId(), auxClus.toString(),auxClus.getCardinality(),iteratorCounter);
 			gv.addRelation(auxClus.getFather_id(), auxClus.getId());
 			
-			gv.addNode(clus2.getId(), clus2.toString(),getCardinalityByCluster(clus2),NONE);
+			gv.addNode(clus2.getId(), clus2.toString(),clus2.getCardinality(),NONE);
 			gv.addRelation(clus2.getFather_id(), clus2.getId());
 						
 		}while(!hasXLabelsPerCluster(clusterList,2));
-		System.out.println("\nOUT OF THE MAIN WHILE");
+		//System.out.println("\nOUT OF THE MAIN WHILE");
 		log=false;
 		divideToUniqueLabelPerCluster(clusterList,j);
 		System.out.println("\n\n");
 		printClusterList(clusterList);
-		printCardinalitiesByClusterList(clusterList);
+		//printCardinalitiesByClusterList(clusterList);
 		
 		Timestamp finishTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
 		System.out.println("Build finished at "+finishTimestamp.toString());
@@ -190,40 +192,40 @@ public class DivisiveHierarchicalClustering {
 	    //gv = null;
 	}
 	
-	private void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
-		System.out.println("CARDINALITY\n");
-		for(int i=0;i<clusterList.size();i++){
-			System.out.println("Index "+i+": "+getCardinalityByCluster(clusterList.get(i)));
-		}
-		System.out.println("\n");
-	}
+//	private void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
+//		System.out.println("CARDINALITY\n");
+//		for(int i=0;i<clusterList.size();i++){
+//			System.out.println("Index "+i+": "+clusterList.get(i).getCardinality());
+//		}
+//		System.out.println("\n");
+//	}
 	
 	
-	private int getNumOfLabels(int[] labels){
-		
-		int tam = labels.length;
-		int sum=0;
-		for(int i=0;i<tam;i++){
-			if(labels[i]==1){
-				sum++;
-			}
-		}
-		return sum;
-	}
-	
-	private double getCardinalityByCluster(ClusterOfLabels cluster) {
-		
-		ArrayList<Label> labels = cluster.getLabels();
-		double tam = labels.size();
-		double sum=0;
-		double cardinality=0;
-		for(int i=0;i<tam;i++){
-			sum+= getNumOfLabels(labels.get(i).getClassificationArray());
-		}
-		cardinality = sum/mInstances.getNumInstances();
-		
-		return cardinality;
-	}
+//	private int getNumOfLabels(int[] labels){
+//		
+//		int tam = labels.length;
+//		int sum=0;
+//		for(int i=0;i<tam;i++){
+//			if(labels[i]==1){
+//				sum++;
+//			}
+//		}
+//		return sum;
+//	}
+//	
+//	private double getCardinalityByCluster(ClusterOfLabels cluster) {
+//		
+//		ArrayList<Label> labels = cluster.getLabels();
+//		double tam = labels.size();
+//		double sum=0;
+//		double cardinality=0;
+//		for(int i=0;i<tam;i++){
+//			sum+= getNumOfLabels(labels.get(i).getClassificationArray());
+//		}
+//		cardinality = sum/mInstances.getNumInstances();
+//		
+//		return cardinality;
+//	}
 	
 		
 	private void divideToUniqueLabelPerCluster(ArrayList<ClusterOfLabels> clusterList,int j){
@@ -259,10 +261,10 @@ public class DivisiveHierarchicalClustering {
 			clusterList.add(firstBro);
 			clusterList.add(secondBro);
 			iteratorCounter++;
-			gv.addNode(firstBro.getId(), firstBro.toString(),getCardinalityByCluster(firstBro),iteratorCounter);
+			gv.addNode(firstBro.getId(), firstBro.toString(),firstBro.getCardinality(),iteratorCounter);
 			gv.addRelation(firstBro.getFather_id(), firstBro.getId());
 			
-			gv.addNode(secondBro.getId(), secondBro.toString(),getCardinalityByCluster(secondBro),NONE);
+			gv.addNode(secondBro.getId(), secondBro.toString(),secondBro.getCardinality(),NONE);
 			gv.addRelation(secondBro.getFather_id(), secondBro.getId());
 			
 			firstBro = null;
@@ -272,24 +274,26 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 	private void printClusterList(ArrayList<ClusterOfLabels> clusterList){
+		System.out.println("Iteration: "+iteratorCounter);
 		System.out.println("#Clusters  -- "+clusterList.size());
-		System.out.print("[ ");
+		System.out.println("[");
 		for(int i=0;i<clusterList.size();i++){
-			printCluster(clusterList.get(i));
+			//printCluster(clusterList.get(i));
+			clusterList.get(i).printCluster();
 		}
 		System.out.println("]\n");
 	}
-	
-	private void printCluster(ClusterOfLabels cluster){
-		System.out.println("\nCluster ID "+cluster.getId());
-		System.out.println("Cluster Father ID "+cluster.getFather_id());
-		System.out.println("\n#Labels "+cluster.getLabels().size());
-		System.out.print("( ");
-		for(int j=0;j<cluster.getLabels().size();j++){
-			System.out.print(cluster.getLabels().get(j).getLabelName().toString()+" , ");
-		}
-		System.out.print(") \n");
-	}
+//	
+//	private void printCluster(ClusterOfLabels cluster){
+//		System.out.println("\nCluster ID "+cluster.getId());
+//		System.out.println("Cluster Father ID "+cluster.getFather_id());
+//		System.out.println("#Labels "+cluster.getLabels().size());
+//		System.out.print("( ");
+//		for(int j=0;j<cluster.getLabels().size();j++){
+//			System.out.print(cluster.getLabels().get(j).getLabelName().toString()+" , ");
+//		}
+//		System.out.print(") \n");
+//	}
 	
 	
 	

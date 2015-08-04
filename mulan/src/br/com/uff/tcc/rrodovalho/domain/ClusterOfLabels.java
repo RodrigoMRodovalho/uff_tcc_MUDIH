@@ -8,6 +8,7 @@ public class ClusterOfLabels{
 	private int id;
 	private int father_id;
 	ArrayList<Label> labels = new ArrayList<Label>();
+	public static int numDataSetInstances=0; 
 	
 	public ClusterOfLabels(){
 		
@@ -75,15 +76,18 @@ public class ClusterOfLabels{
 	}
 	
 	public void printCluster(){
-		System.out.println("#############CLUSTER#########");
+		System.out.println("#############CLUSTER##########");
 		System.out.println("Cluster ID:"+this.id);
 		System.out.println("Cluster FATHER_ID:"+this.father_id);
-		System.out.println("Cluster Labels:  ");
-		for(int i=0;i<this.labels.size();i++){
-			this.labels.get(i).print();
-			System.out.println();
-		}
-		System.out.println("############END##############");
+		System.out.println("Cluster Labels:\n{");
+		System.out.println(this.toString());
+		System.out.println("}");
+//		for(int i=0;i<this.labels.size();i++){
+//			//this.labels.get(i).print();
+//			System.out.println(this.labels.get(i).toString());
+//		}
+		System.out.println("Cluster Cardinality: "+getCardinality());
+		System.out.println("############END##############\n");
 	}
 
 	@Override
@@ -96,5 +100,28 @@ public class ClusterOfLabels{
 			}
 		}
 		return String.valueOf(s);
+	}
+	
+	public double getCardinality(){
+		double tam = labels.size();
+		double sum=0;
+		double cardinality=0;
+		for(int i=0;i<tam;i++){
+			sum+= getNumOfLabels(this.labels.get(i).getClassificationArray());
+		}
+		cardinality = sum/numDataSetInstances;
+		return cardinality;
+	}
+	
+	private int getNumOfLabels(int[] labels){
+		
+		int tam = labels.length;
+		int sum=0;
+		for(int i=0;i<tam;i++){
+			if(labels[i]==1){
+				sum++;
+			}
+		}
+		return sum;
 	}
 }

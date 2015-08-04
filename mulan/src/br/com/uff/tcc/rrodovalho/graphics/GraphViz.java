@@ -299,7 +299,6 @@ public void addNode(int id,String content,double cardinality,int iteratorCounter
 	else{
 		dotEntry = dotEntry.concat(",xlabel=\"i = "+iteratorCounter+"\"]");
 	}
-		System.out.println(dotEntry);
 	addln(dotEntry);
 //	addln(id+"[label=<"+content+"<BR />"+
 //	        "<FONT POINT-SIZE=\"9\"><B>Card:</B> "+formattedCardinality+"</FONT>>,xlabel=\"i = "+iteratorCounter+"\"]");

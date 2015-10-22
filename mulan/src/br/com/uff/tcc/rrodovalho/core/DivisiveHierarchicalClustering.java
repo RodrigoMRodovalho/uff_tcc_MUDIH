@@ -30,6 +30,7 @@ public class DivisiveHierarchicalClustering {
 	private SimilarityMatrix originalSimilarityMatrixx;
 	private SimilarityMeasureEnum distanceMethod;
 	private int iteratorCounter=0;
+	private StringBuilder fileLog;
 	GraphViz gv;
 	
 	public DivisiveHierarchicalClustering(){
@@ -74,15 +75,23 @@ public class DivisiveHierarchicalClustering {
 													   .concat(this.mInstances.getNumInstances()+"_")
 													   .concat(distanceMethod.name());
 		ClusterOfLabels.numDataSetInstances = this.mInstances.getNumInstances();
+		this.fileLog = new StringBuilder();
+		this.fileLog.append(this.dataSetInfo+"\n");
 		gv = new GraphViz();
+		gv.init();
+		gv.setGraphTitle(this.dataSetInfo);
 		
 		buildInternal(mInstances);
+		
+		gv.close();
+		//drawGraph();
 	}
 	
 	private void buildInternal(MultiLabelInstances mInstances){
 		
 		Timestamp statingTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
-		System.out.println("Starting build at "+statingTimestamp.toString());
+		//System.out.println("Starting build at "+statingTimestamp.toString());
+		this.fileLog.append("Starting build at "+statingTimestamp.toString()+"\n");
 		
 		int j=1;
 		ArrayList<ClusterOfLabels> clusterList = new ArrayList<ClusterOfLabels>();
@@ -102,8 +111,6 @@ public class DivisiveHierarchicalClustering {
 		printClusterList(clusterList);
 		//printCardinalitiesByClusterList(clusterList);
 		
-		gv.init();
-		gv.setGraphTitle(this.dataSetInfo);
 		//gv.addln(root.getId()+";");
 		gv.addNode(root.getId(), root.toString(),root.getCardinality(),NONE);
 		
@@ -115,7 +122,8 @@ public class DivisiveHierarchicalClustering {
 			auxClus.setId(++j);
 			auxClus.setFather_id(clus.getId());
 			sMatrix = getSimilarityMatrixx(auxClus);
-			System.out.println("\n");
+			//System.out.println("\n");
+			this.fileLog.append("\n\n");
 			log=false;
 			biggestAverage = getBiggestAverageSimilarityy(sMatrix);
 			ClusterOfLabels	clus2 = new ClusterOfLabels();
@@ -124,7 +132,7 @@ public class DivisiveHierarchicalClustering {
 			while(biggestAverage.getValue()>=0){
 
 				Label labelRemoved = auxClus.removeLabel(biggestAverage.getID());
-				log=false;;
+				log=false;
 				if(log)labelRemoved.print();
                 clus2.addLabel(labelRemoved);
                 clus2.setId(j);
@@ -157,16 +165,16 @@ public class DivisiveHierarchicalClustering {
 		//System.out.println("\nOUT OF THE MAIN WHILE");
 		log=false;
 		divideToUniqueLabelPerCluster(clusterList,j);
-		System.out.println("\n\n");
+		//System.out.println("\n\n");
+		this.fileLog.append("\n\n\n");
 		printClusterList(clusterList);
 		//printCardinalitiesByClusterList(clusterList);
 		
 		Timestamp finishTimestamp = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
-		System.out.println("Build finished at "+finishTimestamp.toString());
+		//System.out.println("Build finished at "+finishTimestamp.toString());
+		this.fileLog.append("Build finished at "+finishTimestamp.toString()+"\n");
 		
 		iteratorCounter=0;
-		gv.close();
-		drawGraph();
 	}
 		
 	private void drawGraph(){
@@ -180,16 +188,17 @@ public class DivisiveHierarchicalClustering {
 		}
 		String absolutePath = path.concat(this.dataSetInfo).concat(".") + type;
 		File out = new File(absolutePath);   // Linux
+		System.out.println("Starting creation of graph");
 	    gv.writeGraphToFile( gv.getGraph( gv.getDotSource(), type ), out );
 	    
-	    Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				gv.openGraph(absolutePath);
-			}
-		});
-	    t.start();
-	    //gv = null;
+//	    Thread t = new Thread(new Runnable() {
+//			@Override
+//			public void run() {
+//				gv.openGraph(absolutePath);
+//			}
+//		});
+//	    t.start();
+	    gv = null;
 	}
 	
 //	private void printCardinalitiesByClusterList(ArrayList<ClusterOfLabels> clusterList){
@@ -274,14 +283,19 @@ public class DivisiveHierarchicalClustering {
 	}
 	
 	private void printClusterList(ArrayList<ClusterOfLabels> clusterList){
-		System.out.println("Iteration: "+iteratorCounter);
-		System.out.println("#Clusters  -- "+clusterList.size());
-		System.out.println("[");
+		//System.out.println("Iteration: "+iteratorCounter);
+		//System.out.println("#Clusters  -- "+clusterList.size());
+		//System.out.println("[");
+		this.fileLog.append("Iteration: "+iteratorCounter+"\n");
+		this.fileLog.append("#Clusters  -- "+clusterList.size()+"\n");
+		this.fileLog.append("[\n");
+		
 		for(int i=0;i<clusterList.size();i++){
 			//printCluster(clusterList.get(i));
-			clusterList.get(i).printCluster();
+			this.fileLog.append(clusterList.get(i).printCluster());
 		}
-		System.out.println("]\n");
+		//System.out.println("]\n");
+		this.fileLog.append("]\n\n");
 	}
 //	
 //	private void printCluster(ClusterOfLabels cluster){
@@ -458,6 +472,10 @@ public class DivisiveHierarchicalClustering {
 	//--------------------
 	public void setGraphOutputImagePath(String path){
 		this.graphOutputPath = path;
+	}
+	
+	public String buildLog(){
+		return this.fileLog.toString();
 	}
 	
 }

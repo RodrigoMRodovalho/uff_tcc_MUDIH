@@ -75,19 +75,32 @@ public class ClusterOfLabels{
 		
 	}
 	
-	public void printCluster(){
-		System.out.println("#############CLUSTER##########");
-		System.out.println("Cluster ID:"+this.id);
-		System.out.println("Cluster FATHER_ID:"+this.father_id);
-		System.out.println("Cluster Labels:\n{");
-		System.out.println(this.toString());
-		System.out.println("}");
+	public String printCluster(){
+		StringBuilder sb = new StringBuilder();
+		//System.out.println("#############CLUSTER##########");
+		sb.append("#############CLUSTER##########\n");
+		//System.out.println("Cluster ID:"+this.id);
+		sb.append("Cluster ID:"+this.id+"\n");
+		//System.out.println("Cluster FATHER_ID:"+this.father_id);
+		sb.append("Cluster FATHER_ID:"+this.father_id+"\n");
+		//System.out.println("#Labels: "+this.labels.size());
+		sb.append("#Labels: "+this.labels.size()+"\n");
+		//System.out.println("Cluster Labels:\n{");
+		sb.append("Cluster Labels:\n{\n");
+		//System.out.println(this.toString());
+		sb.append(this.toString()+"\n");
+		//System.out.println("}");
+		sb.append("}\n");
 //		for(int i=0;i<this.labels.size();i++){
 //			//this.labels.get(i).print();
 //			System.out.println(this.labels.get(i).toString());
 //		}
-		System.out.println("Cluster Cardinality: "+getCardinality());
-		System.out.println("############END##############\n");
+		//System.out.println("Cluster Cardinality: "+getCardinality());
+		sb.append("Cluster Cardinality: "+getCardinality()+"\n");
+		//System.out.println("############END##############\n");
+		sb.append("############END##############\n\n");
+		
+		return sb.toString();
 	}
 
 	@Override

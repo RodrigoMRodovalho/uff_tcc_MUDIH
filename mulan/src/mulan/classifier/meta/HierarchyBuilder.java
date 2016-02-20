@@ -31,6 +31,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import br.com.uff.tcc.rrodovalho.core.DivisiveHierarchicalClustering;
+import br.com.uff.tcc.rrodovalho.distance.SimilarityMeasureEnum;
 import mulan.data.InvalidDataFormatException;
 import mulan.data.LabelNode;
 import mulan.data.LabelNodeImpl;
@@ -120,9 +122,12 @@ public class HierarchyBuilder implements Serializable {
             case BalancedClustering:
                 childrenLabels = clustering(numPartitions, listOfLabels, mlData, true);
                 break;
+            case DivisiveHierarchicalClustering:
+                childrenLabels = hierarchicalClustering(mlData,numPartitions);
+                break;
         }
 
-        for (int i = 0; i < numPartitions; i++) {
+        for (int i = 0; i < childrenLabels.length; i++) {
             if (childrenLabels[i].size() == listOfLabels.size()) {
                 // another idea is to add leaves here
                 childrenLabels = randomPartitioning(numPartitions, listOfLabels);
@@ -131,7 +136,7 @@ public class HierarchyBuilder implements Serializable {
         }
 
         LabelsMetaDataImpl metaData = new LabelsMetaDataImpl();
-        for (int i = 0; i < numPartitions; i++) {
+        for (int i = 0; i < childrenLabels.length; i++) {
             if (childrenLabels[i].isEmpty()) {
                 continue;
             }
@@ -186,6 +191,9 @@ public class HierarchyBuilder implements Serializable {
             case BalancedClustering:
                 childrenLabels = clustering(numPartitions, labels, mlData, true);
                 break;
+            case DivisiveHierarchicalClustering:
+                childrenLabels = hierarchicalClustering(mlData,numPartitions);
+                break;
         }
 
         for (int i = 0; i < numPartitions; i++) {
@@ -211,6 +219,14 @@ public class HierarchyBuilder implements Serializable {
                 createLabelsMetaDataRecursive(child, childrenLabels[i], mlData);
             }
         }
+    }
+
+    private ArrayList<String>[] hierarchicalClustering(MultiLabelInstances mlData,int numPartitions){
+        DivisiveHierarchicalClustering method = null;
+        method = new DivisiveHierarchicalClustering(numPartitions);
+        ArrayList<String>[] ret = method.build(mlData, SimilarityMeasureEnum.EuclideanDistance);
+        method = null;
+        return ret;
     }
 
     private ArrayList<String>[] clustering(int clusters, List<String> labels, MultiLabelInstances mlData, boolean balanced) {
@@ -430,6 +446,7 @@ public class HierarchyBuilder implements Serializable {
         /** distribution based on label similarity */ 
         Clustering,
         /** balanced distribution based on label similarity */
-        BalancedClustering
+        BalancedClustering,
+        DivisiveHierarchicalClustering
     }
 }

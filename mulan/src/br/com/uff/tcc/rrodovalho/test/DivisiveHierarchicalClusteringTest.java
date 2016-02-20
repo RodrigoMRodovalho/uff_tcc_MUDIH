@@ -133,7 +133,7 @@ public class DivisiveHierarchicalClusteringTest {
 			String o = outputResultMap.get(s);
 			checkDir(o);
 			mInstances = new MultiLabelInstances(s,xmlMap.get(s));
-			method = new DivisiveHierarchicalClustering();
+			method = new DivisiveHierarchicalClustering(0);
 			method.setGraphOutputImagePath(o);
 			for(int j=1;j<2;j++){
 				method.build(mInstances, e[j]);

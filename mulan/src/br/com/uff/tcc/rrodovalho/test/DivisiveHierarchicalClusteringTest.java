@@ -16,102 +16,43 @@ import br.com.uff.tcc.rrodovalho.distance.SimilarityMeasureEnum;
 
 public class DivisiveHierarchicalClusteringTest {
 
+	public static final String ARFF = "arff";
+	public static final String XML = "xml";
+
 	public static void main(String[] args) throws InvalidDataFormatException, CloneNotSupportedException, IOException {
 		
 		ArrayList<String> inputBasesPathArray = new ArrayList<String>();
 		Map<String,String> xmlMap = new HashMap<String, String>();
+		Map<String,String> inOutMap = new HashMap<String, String>();
 		Map<String,String> outputResultMap = new HashMap<String, String>();
-		String commonInputPath = "/home/rrodovalho/Dropbox/TCC_Bases/";
+		String commonInputPath = "/home/rrodovalho/Dropbox/TCC_Bases/bases/";
 		String commonOutPath = "/home/rrodovalho/Documents/TCC/";
 		String f,arff;
-		
-		f = commonInputPath.concat("bases/bibtex/bibtex.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("bibtex/"));
-		
-		f = commonInputPath.concat("bases/bookmarks/bookmarks.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("bookmarks/"));
-		
-		f = commonInputPath.concat("bases/corel5k/Corel5k.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("corel5k/"));
-				
-		f = commonInputPath.concat("bases/Corel16k001/Corel16k001.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("Corel16k001/"));
-		
-		f = commonInputPath.concat("bases/delicious/delicious.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("delicious/"));
-		
-		f = commonInputPath.concat("bases/emotions/emotions.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("emotions/"));
-		
-		f = commonInputPath.concat("bases/enron/enron.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("enron/"));
-		
-		f = commonInputPath.concat("bases/genbase/genbase.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("genbase/"));
-		
-		f = commonInputPath.concat("bases/mediamill/mediamill.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("mediamill/"));
-		
-		
-		f = commonInputPath.concat("bases/medical/medical.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("medical/"));
-		
-		
-		f = commonInputPath.concat("bases/rcv1subset1/rcv1subset1.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("rcv1subset1/"));
-		
-		
-		f = commonInputPath.concat("bases/scene/scene.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("scene/"));
-		
-		f = commonInputPath.concat("bases/tmc2007/tmc2007.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("tmc2007/"));
-		
-		
-		f = commonInputPath.concat("bases/yeast/yeast.");
-		arff = f.concat("arff");
-		inputBasesPathArray.add(arff);
-		xmlMap.put(arff, f.concat("xml"));
-		outputResultMap.put(arff, commonOutPath.concat("yeast/"));
+
+//        inOutMap.put("bibtex/bibtex.","bibtex/");
+//        inOutMap.put("bookmarks/bookmarks.","bookmarks/");
+//        inOutMap.put("corel5k/Corel5k.","corel5k/");
+//        inOutMap.put("Corel16k001/Corel16k001.","Corel16k001/");
+//        inOutMap.put("delicious/delicious.","delicious/");
+//        inOutMap.put("enron/enron.","enron/");
+//        inOutMap.put("genbase/genbase.","genbase/");
+//        inOutMap.put("mediamill/mediamill.","mediamill/");
+//        inOutMap.put("medical/medical.","medical/");
+//        inOutMap.put("rcv1subset1/rcv1subset1.","rcv1subset1/");
+//        inOutMap.put("scene/scene.","scene/");
+		  inOutMap.put("emotions/emotions.","emotions/");
+//        inOutMap.put("tmc2007/tmc2007.","tmc2007/");
+//        inOutMap.put("yeast/yeast.","yeast/");
+
+
+		for (Map.Entry<String, String> entry : inOutMap.entrySet())
+		{
+			f = commonInputPath.concat(entry.getKey());
+			arff = f.concat(ARFF);
+			inputBasesPathArray.add(arff);
+			xmlMap.put(arff, f.concat(XML));
+			outputResultMap.put(arff, commonOutPath.concat(entry.getValue()));
+		}
 		
 		f= null;
 		arff=null;

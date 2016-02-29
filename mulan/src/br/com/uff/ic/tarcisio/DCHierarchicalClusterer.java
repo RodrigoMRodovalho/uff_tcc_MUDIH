@@ -953,7 +953,7 @@ public class DCHierarchicalClusterer extends AbstractClusterer implements
       "-A <classname and options>"));
 
     //<RR> Linha comentada para resolver erro de compilação
-    //newVector.addAll(Collections.list(super.listOptions()));
+    newVector.addAll(Collections.list(m_DistanceFunction.listOptions()));
     //</RR>
     return newVector.elements();
   }
@@ -1027,7 +1027,7 @@ public class DCHierarchicalClusterer extends AbstractClusterer implements
     }
 
     //<RR> Linha comentada para resolver erro de compilação
-    //super.setOptions(options);
+    m_DistanceFunction.setOptions(options);
     //</RR>
 
     Utils.checkForRemainingOptions(options);
@@ -1085,7 +1085,7 @@ public class DCHierarchicalClusterer extends AbstractClusterer implements
       .joinOptions(m_DistanceFunction.getOptions())).trim());
 
     //<RR> Linha comentada para resolver erro de compilação
-    //Collections.addAll(options, super.getOptions());
+    Collections.addAll(options, m_DistanceFunction.getOptions());
     //</RR>
 
     return options.toArray(new String[0]);

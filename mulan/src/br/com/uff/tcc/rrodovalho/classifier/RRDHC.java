@@ -1,5 +1,7 @@
 package br.com.uff.tcc.rrodovalho.classifier;
 
+import br.com.uff.tcc.rrodovalho.Cluster;
+import br.com.uff.tcc.rrodovalho.Element;
 import br.com.uff.tcc.rrodovalho.distance.LabelDistance;
 import br.com.uff.tcc.rrodovalho.distance.SimilarityMeasureEnum;
 import br.com.uff.tcc.rrodovalho.domain.*;
@@ -19,15 +21,13 @@ import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Created by rrodovalho on 21/02/16.
  */
 public class RRDHC extends MultiLabelMetaLearner{
-    private final int mNumClusters;
+
     /**
      * Creates a new instance.
      *
@@ -39,10 +39,20 @@ public class RRDHC extends MultiLabelMetaLearner{
     private ArrayList<ClusterOfLabels> clusterList;
     private MultiLabelInstances mInstances;
     private MultiLabelLearner[] ensemble;
+    private double mCardPercent;
+    private int buildMode;
+    private int mNumClusters;
 
     public RRDHC(MultiLabelLearner baseLearner,int numCluster) {
         super(baseLearner);
         mNumClusters = numCluster;
+        buildMode = 0;
+    }
+
+    public RRDHC(MultiLabelLearner baseLearner,double cardPercent) {
+        super(baseLearner);
+        mCardPercent = cardPercent;
+        buildMode = 1;
     }
 
 
@@ -253,11 +263,59 @@ public class RRDHC extends MultiLabelMetaLearner{
         }while(!hasXLabelsPerCluster(clusterList,1));
     }
 
+    private int getNumOfLabels(int[] labels){
+
+		int tam = labels.length;
+		int sum=0;
+		for(int i=0;i<tam;i++){
+			if(labels[i]==1){
+				sum++;
+			}
+		}
+		return sum;
+	}
+
+	private double getCardinalityByCluster(ClusterOfLabels cluster) {
+
+		ArrayList<Label> labels = cluster.getLabels();
+		double tam = labels.size();
+		double sum=0;
+		double cardinality=0;
+		for(int i=0;i<tam;i++){
+			sum+= getNumOfLabels(labels.get(i).getClassificationArray());
+		}
+		cardinality = sum/mInstances.getNumInstances();
+
+		return cardinality;
+	}
+
+    private boolean shoudStop(ArrayList<ClusterOfLabels> clusterList){
+
+        if(buildMode==0){
+            if(clusterList.size() == mNumClusters){
+                return true;
+            }
+        }
+        else{
+            for(int i=0;i<clusterList.size();i++){
+                double card = getCardinalityByCluster(clusterList.get(i));
+                System.out.println(card);
+                if(card>=mCardPercent){
+                    return true;
+                }
+            }
+            System.out.println("\n\n");
+        }
+
+        return false;
+    }
+
     private ArrayList<ClusterOfLabels> run(MultiLabelInstances trainingSet){
     //private ArrayList<String>[] run(MultiLabelInstances trainingSet){
 
         int j=1;
         clusterList = new ArrayList<ClusterOfLabels>();
+        ArrayList<ClusterOfLabels> clusterListBackup;
         ArrayList<Integer> whoOut;
         ClusterOfLabels root = new ClusterOfLabels();
         SimilarityMatrix sMatrix;
@@ -272,6 +330,7 @@ public class RRDHC extends MultiLabelMetaLearner{
         boolean control = false;
         initializeOriginalSimilarityMatrixx(root);
 //        printClusterList(clusterList);
+        System.out.println("Cardinality   "+getCardinalityByCluster(clusterList.get(0)));
 
         do{
             clus = getBiggestCluster(clusterList);
@@ -292,14 +351,22 @@ public class RRDHC extends MultiLabelMetaLearner{
                 whoOut.add(biggestAverage.getID());
                 biggestAverage = getSimilaritiesFromNewClusterr(sMatrix,whoOut);
             }
+
+            clusterListBackup = new ArrayList<>();
+            clusterListBackup.addAll(clusterList);
+
             clusterList.remove(clus);
             clusterList.add(auxClus);
             clusterList.add(clus2);
 
-            if(clusterList.size() == mNumClusters){
+            if(shoudStop(clusterList)){
+                if(buildMode==1){
+                    clusterList = clusterListBackup;
+                }
                 control = true;
                 break;
             }
+
             clus=null;
 
         }while(!hasXLabelsPerCluster(clusterList,2));
@@ -330,6 +397,12 @@ public class RRDHC extends MultiLabelMetaLearner{
         int[] indexToRemove = new int[numLabels-labels.getLabels().size()];
         Instances shell=null;
         LabelsMetaDataImpl m = ((LabelsMetaDataImpl) mInstances.getLabelsMetaData().clone());
+
+        Collections.sort(labels.getLabels(), new Comparator<Label>() {
+            @Override public int compare(Label p1, Label p2) {
+                return p1.getId()- p2.getId();
+            }
+        });
 
         //Todo devo ordenar os labels? Investigar
         int control;

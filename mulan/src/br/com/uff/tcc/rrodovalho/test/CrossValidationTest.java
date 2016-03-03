@@ -13,6 +13,7 @@ import mulan.evaluation.MultipleEvaluation;
 import mulan.evaluation.measure.Measure;
 import weka.classifiers.trees.J48;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -26,10 +27,7 @@ public class CrossValidationTest {
     public static void main(String[] args) {
 
         try {
-            // e.g. -arff emotions.arff
-
             String arffFilename = "/home/rrodovalho/Dropbox/TCC_Bases/bases/yeast/yeast.arff";
-            // e.g. -xml emotions.xml
             String xmlFilename = "/home/rrodovalho/Dropbox/TCC_Bases/bases/yeast/yeast.xml";
 
             System.out.println("Loading the dataset...");
@@ -47,10 +45,10 @@ public class CrossValidationTest {
              measures.add(new mulan.evaluation.measure.HammingLoss());
              measures.add(new mulan.evaluation.measure.SubsetAccuracy());
              measures.add(new mulan.evaluation.measure.ExampleBasedFMeasure());
-                        measures.add(new mulan.evaluation.measure.MicroFMeasure(dataset.getNumLabels()));
-                        measures.add(new mulan.evaluation.measure.MacroFMeasure(dataset.getNumLabels()));
-                        measures.add(new mulan.evaluation.measure.MacroAUC(dataset.getNumLabels()));
-                        measures.add(new mulan.evaluation.measure.MicroAUC(dataset.getNumLabels()));
+            measures.add(new mulan.evaluation.measure.MicroFMeasure(dataset.getNumLabels()));
+            measures.add(new mulan.evaluation.measure.MacroFMeasure(dataset.getNumLabels()));
+            measures.add(new mulan.evaluation.measure.MacroAUC(dataset.getNumLabels()));
+            measures.add(new mulan.evaluation.measure.MicroAUC(dataset.getNumLabels()));
 
             //Evaluator eval0 = new Evaluator();
             //Evaluation eval2 = eval0.evaluate(rrdhc, dataset,measures);
@@ -71,4 +69,6 @@ public class CrossValidationTest {
         }
 
     }
+
+
 }

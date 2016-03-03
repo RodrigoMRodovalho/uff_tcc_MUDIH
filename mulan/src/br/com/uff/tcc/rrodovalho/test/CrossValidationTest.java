@@ -1,11 +1,8 @@
 package br.com.uff.tcc.rrodovalho.test;
 
-import br.com.uff.ic.tarcisio.DCHierarchicalClusterer;
-import br.com.uff.ic.tarcisio.HCDC;
-import br.com.uff.ic.tarcisio.HierarchyBuilderForHCDC;
 import br.com.uff.tcc.rrodovalho.classifier.RRDHC;
-import mulan.classifier.lazy.MLkNN;
-import mulan.classifier.meta.RAkEL;
+import mulan.classifier.meta.HOMER;
+import mulan.classifier.meta.HierarchyBuilder;
 import mulan.classifier.transformation.BinaryRelevance;
 import mulan.classifier.transformation.LabelPowerset;
 import mulan.data.InvalidDataFormatException;
@@ -15,7 +12,6 @@ import mulan.evaluation.Evaluator;
 import mulan.evaluation.MultipleEvaluation;
 import mulan.evaluation.measure.Measure;
 import weka.classifiers.trees.J48;
-import weka.core.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +36,12 @@ public class CrossValidationTest {
             MultiLabelInstances dataset = new MultiLabelInstances(arffFilename, xmlFilename);
 
 
-            RRDHC rrdhc = new RRDHC(new BinaryRelevance(new J48()),4);
-//            RRDHC rrdhc = new RRDHC(new LabelPowerset(new J48()),5.0);
-            rrdhc.build(dataset);
-
-            //HCDC hcdc = new HCDC(new LabelPowerset(new J48()),3, HierarchyBuilderForHCDC.Method.HierarchicalClusterer);
-            //hcdc.build(dataset);
-
-            //hcdc.Imprimir();
+//            RRDHC rrdhc = new RRDHC(new BinaryRelevance(new J48()),3);
+//            RRDHC rrdhc = new RRDHC(new LabelPowerset(new J48()),5);
+//            BinaryRelevance rrdhc = new BinaryRelevance(new J48());
+//            LabelPowerset rrdhc = new LabelPowerset(new J48());
+            HOMER rrdhc = new HOMER(new LabelPowerset(new J48()), 3, HierarchyBuilder.Method.Clustering);
+            //rrdhc.build(dataset);
 
             List<Measure> measures = new ArrayList<>();
              measures.add(new mulan.evaluation.measure.HammingLoss());
@@ -58,28 +52,18 @@ public class CrossValidationTest {
                         measures.add(new mulan.evaluation.measure.MacroAUC(dataset.getNumLabels()));
                         measures.add(new mulan.evaluation.measure.MicroAUC(dataset.getNumLabels()));
 
-            Evaluator eval0 = new Evaluator();
-            Evaluation eval2 = eval0.evaluate(rrdhc, dataset,measures);
+            //Evaluator eval0 = new Evaluator();
+            //Evaluation eval2 = eval0.evaluate(rrdhc, dataset,measures);
 
-            //System.out.println(eval2.toString());
+            //System.out.println("\n\n"+eval2.toString());
 
-//            RAkEL learner1 = new RAkEL(new LabelPowerset(new J48()));
-//            MLkNN learner2 = new MLkNN();
-//
-//            Evaluator eval = new Evaluator();
-//            MultipleEvaluation results;
-//
-//            BinaryRelevance binaryRelevance = new BinaryRelevance(new J48());
-//            binaryRelevance.build(dataset);
-//
-//
-//            int numFolds = 3;
-//            results = eval.crossValidate(binaryRelevance, dataset, numFolds);
-//            System.out.println(results);
-//            results = eval.crossValidate(learner1, dataset, numFolds);
-//            System.out.println(results);
-//            results = eval.crossValidate(learner2, dataset, numFolds);
-//            System.out.println(results);
+            Evaluator eval = new Evaluator();
+            MultipleEvaluation results;
+
+            int numFolds = 3;
+            results = eval.crossValidate(rrdhc, dataset, numFolds);
+            System.out.println(results);
+
         } catch (InvalidDataFormatException ex) {
             Logger.getLogger(CrossValidationTest.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {

@@ -6,9 +6,12 @@ import br.com.uff.tcc.rrodovalho.domain.*;
 import mulan.classifier.MultiLabelLearner;
 import mulan.classifier.MultiLabelOutput;
 import mulan.classifier.meta.MultiLabelMetaLearner;
+import mulan.classifier.transformation.TransformationBasedMultiLabelLearner;
 import mulan.data.LabelsMetaData;
 import mulan.data.LabelsMetaDataImpl;
 import mulan.data.MultiLabelInstances;
+import weka.classifiers.AbstractClassifier;
+import weka.classifiers.Classifier;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.filters.Filter;
@@ -31,14 +34,17 @@ public class RRDHC extends MultiLabelMetaLearner{
     private SimilarityMatrix originalSimilarityMatrixx;
     private ArrayList<ClusterOfLabels> clusterList;
     private MultiLabelInstances mInstances;
-    private MultiLabelLearner[] ensemble;
     private double mCardPercent;
     private int buildMode;
     private int mNumClusters;
     ArrayList<int[]> clusterLabelIndexs = new ArrayList<>();
 
+    LearnerWrapper learnerWrapper;
+    private ArrayList<Instances> dataInstances;
+
 
     public RRDHC(MultiLabelLearner baseLearner,int numCluster) {
+
         super(baseLearner);
         mNumClusters = numCluster;
         buildMode = 0;
@@ -295,6 +301,7 @@ public class RRDHC extends MultiLabelMetaLearner{
             for(int i=0;i<clusterList.size();i++){
                 double card = getCardinalityByCluster(clusterList.get(i));
                 System.out.println(card);
+                //Todo verificar se essa logica esta correta
                 if(card>=mCardPercent){
                     return true;
                 }
@@ -371,7 +378,8 @@ public class RRDHC extends MultiLabelMetaLearner{
         return clusterList;
     }
 
-    public MultiLabelInstances getMLIFromLabels(ClusterOfLabels labels){
+    public DatasetWrapper getMLIFromLabels(ClusterOfLabels labels){
+
 
         int firstLabelIndex = labelIndices[0];
         int[] indexs = new int[labels.getLabels().size()];
@@ -413,7 +421,19 @@ public class RRDHC extends MultiLabelMetaLearner{
         try {
             remove.setInputFormat(mInstances.getDataSet());
             shell = Filter.useFilter(mInstances.getDataSet(), remove);
-            return new MultiLabelInstances(shell,labelsMetaData);
+            DatasetWrapper datasetWrapper;
+            if(labels.getLabels().size()<2){
+                //TODO otimizar essa parte, se for só para gerar o shell, é mesmo necessário
+                //fazer as transformações dos LabelsMetaData?
+
+                shell.setClassIndex(shell.numAttributes() - 1);
+                datasetWrapper  = new DatasetWrapper(shell);
+            }
+            else{
+                datasetWrapper = new DatasetWrapper(new MultiLabelInstances(shell,labelsMetaData));
+            }
+
+            return datasetWrapper;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -423,22 +443,45 @@ public class RRDHC extends MultiLabelMetaLearner{
     @Override
     protected void buildInternal(MultiLabelInstances trainingSet) throws Exception {
 
-        //Todo quando o cluster possuir um único label, ao invés de construir um classificador
-        //Todo multilabel tem que ser construido um classificar monolabel
+
+        if(buildMode==1){
+
+            //Todo verificar se a cardinalidde do conjunto de dados original, é menor que a que
+            //Todo inputada no construtor, lançar uma exception, caso necessário.
+            //Todo Calcular a porcentagem, e atribuir uma variável
+
+        }
+
         mInstances = trainingSet;
         System.out.println("Starting building");
         ArrayList<ClusterOfLabels> clusters = run(trainingSet);
+
+        //TODO imprimir a quantidade de labels por cluster
+
         System.out.println("Done");
-        ensemble = new MultiLabelLearner[clusters.size()];
-        MultiLabelInstances[] data = new MultiLabelInstances[clusters.size()];
+        learnerWrapper = new LearnerWrapper(clusters.size());
+
+        DatasetWrapper[] datasetWapperArray = new DatasetWrapper[clusters.size()];
         System.out.println("Generated "+clusters.size()+" clusters");
         for(int i=0;i<clusters.size();i++){
             System.out.println("Processing Cluster "+(i+1)+"/"+clusters.size()+"");
             System.out.println("Transforming dataset");
-            data[i] = getMLIFromLabels(clusters.get(i));
-            ensemble[i] = baseLearner.makeCopy();
+            datasetWapperArray[i] = getMLIFromLabels(clusters.get(i));
+
             System.out.println("Building classifier ");
-            ensemble[i].build(data[i]);
+            if(datasetWapperArray[i].isSingleLabel()){
+                if(dataInstances==null){
+                    dataInstances = new ArrayList<>();
+                }
+                dataInstances.add(datasetWapperArray[i].getInstances());
+                learnerWrapper.addLearner(AbstractClassifier.makeCopy(((TransformationBasedMultiLabelLearner)baseLearner).getBaseClassifier()),i);
+                ((Classifier)learnerWrapper.getLearner(i)).buildClassifier(datasetWapperArray[i].getInstances());
+            }
+            else {
+                learnerWrapper.addLearner(baseLearner.makeCopy(),i);
+                ((MultiLabelLearner)learnerWrapper.getLearner(i)).build(datasetWapperArray[i].getMultiLabelInstances());
+            }
+
         }
     }
 
@@ -448,10 +491,41 @@ public class RRDHC extends MultiLabelMetaLearner{
         boolean[] bipartition = new boolean[numLabels];
         double[] confidences = new double[numLabels];
 
-        MultiLabelOutput multiLabelOutput[] = new MultiLabelOutput[ensemble.length];
+        MultiLabelOutput multiLabelOutput[] = new MultiLabelOutput[learnerWrapper.getNumOfLearners()];
+        int singleClusterDataInstancesPos = 0;
 
         for(int i=0;i<multiLabelOutput.length;i++){
-              multiLabelOutput[i] = ensemble[i].makePrediction(instance);
+
+            if(clusterLabelIndexs.get(i).length==1){
+
+                //Todo otimizar essa parte
+                Instance transformedInstance;
+                int[] indices = new int[labelIndices.length-1];
+                System.arraycopy(labelIndices, 1, indices, 0, labelIndices.length-1);
+                Remove remove = new Remove();
+                remove.setAttributeIndicesArray(indices);
+                remove.setInvertSelection(false);
+                remove.setInputFormat(mInstances.getDataSet());
+                remove.input(instance);
+                transformedInstance = remove.output();
+                transformedInstance.setDataset(dataInstances.get(singleClusterDataInstancesPos));
+                singleClusterDataInstancesPos++;
+
+                boolean[] singleBipartition = new boolean[1];
+                double[] singleConfidences = new double[1];
+                double[] distribution = ((Classifier)learnerWrapper.getLearner(i)).distributionForInstance(transformedInstance);
+
+                int maxIndex = (distribution[0] > distribution[1]) ? 0 : 1;
+
+                singleBipartition[0] = (maxIndex == 1) ? true : false;
+                singleConfidences[0] = distribution[1];
+
+                multiLabelOutput[i] = new MultiLabelOutput(singleBipartition,singleConfidences);
+            }
+            else{
+                multiLabelOutput[i] = ((MultiLabelLearner)learnerWrapper.getLearner(i)).makePrediction(instance);
+            }
+
         }
 
         for(int j=0;j<clusterLabelIndexs.size();j++){

@@ -5,19 +5,31 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.util.*;
 
+import br.com.uff.tcc.rrodovalho.classifier.RRDHC;
+import mulan.classifier.MultiLabelLearner;
+import mulan.classifier.meta.HOMER;
+import mulan.classifier.meta.HierarchyBuilder;
+import mulan.classifier.transformation.BinaryRelevance;
+import mulan.classifier.transformation.ClassifierChain;
+import mulan.classifier.transformation.LabelPowerset;
 import mulan.data.InvalidDataFormatException;
 import mulan.data.MultiLabelInstances;
 import br.com.uff.tcc.rrodovalho.core.DivisiveHierarchicalClustering;
 import br.com.uff.tcc.rrodovalho.distance.SimilarityMeasureEnum;
+import mulan.evaluation.Evaluation;
+import mulan.evaluation.Evaluator;
+import mulan.evaluation.MultipleEvaluation;
+import mulan.evaluation.measure.Measure;
+import weka.classifiers.trees.J48;
 
 public class DivisiveHierarchicalClusteringTest {
 
 	public static final String ARFF = "arff";
 	public static final String XML = "xml";
+	static List<Measure> measures ;
 
 	public static void main(String[] args) throws InvalidDataFormatException, CloneNotSupportedException, IOException {
 		
@@ -26,24 +38,46 @@ public class DivisiveHierarchicalClusteringTest {
 		Map<String,String> inOutMap = new HashMap<String, String>();
 		Map<String,String> outputResultMap = new HashMap<String, String>();
 		String commonInputPath = "/home/rrodovalho/Dropbox/TCC_Bases/bases/";
-		String commonOutPath = "/home/rrodovalho/Documents/TCC/";
+		String commonOutPath = "/home/rrodovalho/Dropbox/TCC/RRDHC/LastResults/";
 		String f,arff;
 
-//        inOutMap.put("bibtex/bibtex.","bibtex/");
-//        inOutMap.put("bookmarks/bookmarks.","bookmarks/");
-//        inOutMap.put("corel5k/Corel5k.","corel5k/");
-//        inOutMap.put("Corel16k001/Corel16k001.","Corel16k001/");
-//        inOutMap.put("delicious/delicious.","delicious/");
-//        inOutMap.put("enron/enron.","enron/");
-//        inOutMap.put("genbase/genbase.","genbase/");
-//        inOutMap.put("mediamill/mediamill.","mediamill/");
-//        inOutMap.put("medical/medical.","medical/");
-//        inOutMap.put("rcv1subset1/rcv1subset1.","rcv1subset1/");
-//        inOutMap.put("scene/scene.","scene/");
-		  inOutMap.put("emotions/emotions.","emotions/");
-//        inOutMap.put("tmc2007/tmc2007.","tmc2007/");
-//        inOutMap.put("yeast/yeast.","yeast/");
+		//Pendent
 
+//		inOutMap.put("bibtex/bibtex.","bibtex/");
+//		inOutMap.put("bookmarks/bookmarks.","bookmarks/");
+//		inOutMap.put("corel5k/Corel5k.","corel5k/");
+//		inOutMap.put("Corel16k001/Corel16k001.","Corel16k001/");
+//		inOutMap.put("delicious/delicious.","delicious/");
+		inOutMap.put("rcv1subset1/rcv1subset1.","rcv1subset1/");
+
+
+//   Muito tempo demora
+//		inOutMap.put("tmc2007/tmc2007.","tmc2007/");
+
+//		Error
+//		inOutMap.put("mediamill/mediamill.","mediamill/");
+
+
+		//Done
+//		inOutMap.put("genbase/genbase.","genbase/");
+//		inOutMap.put("emotions/emotions.","emotions/");
+//		inOutMap.put("yeast/yeast.","yeast/");
+//		inOutMap.put("scene/scene.","scene/");
+//		inOutMap.put("enron/enron.","enron/");
+//		inOutMap.put("medical/medical.","medical/");
+
+
+		ArrayList<MultiLabelLearner> multiLabelLearnerArrayList = new ArrayList<>();
+		multiLabelLearnerArrayList.add(new RRDHC (new LabelPowerset(new J48()),5));
+		multiLabelLearnerArrayList.add(new RRDHC (new ClassifierChain(new J48()),5));
+		multiLabelLearnerArrayList.add(new HOMER (new LabelPowerset(new J48()),5, HierarchyBuilder.Method.Clustering));
+		multiLabelLearnerArrayList.add(new HOMER (new ClassifierChain(new J48()),5, HierarchyBuilder.Method.Clustering));
+
+		ArrayList<String> outputNames = new ArrayList<>();
+		outputNames.add("RRDHC_LabelPowersetJ48_5C10F");
+		outputNames.add("RRDHC_ClassifierChainJ48_5C10F");
+		outputNames.add("HOMER_LabelPowersetJ48_5C10F");
+		outputNames.add("HOMER_ClassifierChainJ48_5C10F");
 
 		for (Map.Entry<String, String> entry : inOutMap.entrySet())
 		{
@@ -59,30 +93,43 @@ public class DivisiveHierarchicalClusteringTest {
 
 		MultiLabelInstances mInstances = null;
 		DivisiveHierarchicalClustering method = null;
-		
-		SimilarityMeasureEnum e[]={SimilarityMeasureEnum.EuclideanDistance,
-				SimilarityMeasureEnum.ChebychevDistance,
-				SimilarityMeasureEnum.QuadraticEuclideanDistance,
-				SimilarityMeasureEnum.ManhattanDistance
-		};
-		
+
 		FileWriter fw = null;
 		BufferedWriter bw = null;
-		
+		Evaluator evaluator;
+		Evaluation evaluation;
+		MultipleEvaluation results;
+
 		for(int i=0;i<inputBasesPathArray.size();i++){
 			String s = inputBasesPathArray.get(i);
 			String o = outputResultMap.get(s);
 			checkDir(o);
 			mInstances = new MultiLabelInstances(s,xmlMap.get(s));
-			method = new DivisiveHierarchicalClustering();
-			method.setGraphOutputImagePath(o);
-			for(int j=1;j<2;j++){
-				method.build(mInstances, e[j]);
-				fw = new FileWriter(o+"out"+e[j].name()+".txt");
+
+			setMeasuresArray(mInstances);
+
+			for(int j=0;j<multiLabelLearnerArrayList.size();j++){
+				fw = new FileWriter(o+outputNames.get(j)+".txt");
 				bw = new BufferedWriter(fw);
-				bw.write(s+"\n");
-				bw.write(method.buildLog());
+				evaluator = new Evaluator();
+				bw.write("Info: "+o+outputNames.get(j));
+				bw.write("Num Instances "+mInstances.getNumInstances());
+				bw.write("Num Labels "+mInstances.getNumLabels());
+				System.out.println("Info: "+o+outputNames.get(j));
+				System.out.println("Num Instances "+mInstances.getNumInstances());
+				System.out.println("Num Labels "+mInstances.getNumLabels());
+				Timestamp timeStamp = new Timestamp(Calendar.getInstance().getTime().getTime());
+				System.out.println("Crossvalidate starting at "+timeStamp.toString());
+				bw.write("Crossvalidate starting at "+timeStamp.toString());
+				results = evaluator.crossValidate(multiLabelLearnerArrayList.get(j), mInstances, measures,10);
+				timeStamp = new Timestamp(Calendar.getInstance().getTime().getTime());
+				System.out.println("Crossvalidate ending at "+timeStamp.toString());
+				bw.write("Crossvalidate ending at "+timeStamp.toString());
+				bw.write(results.toString());
 				bw.close();
+				evaluator = null;
+				evaluation = null;
+				results = null;
 			}
 			s = null;
 			o=null;
@@ -97,6 +144,18 @@ public class DivisiveHierarchicalClusteringTest {
 		{
 		    parent_directory.mkdirs();
 		}
+	}
+
+	public static void setMeasuresArray(MultiLabelInstances mInstances){
+		measures = null;
+		measures = new ArrayList<>();
+		measures.add(new mulan.evaluation.measure.HammingLoss());
+		measures.add(new mulan.evaluation.measure.SubsetAccuracy());
+		measures.add(new mulan.evaluation.measure.ExampleBasedFMeasure());
+		measures.add(new mulan.evaluation.measure.MicroFMeasure(mInstances.getNumLabels()));
+		measures.add(new mulan.evaluation.measure.MacroFMeasure(mInstances.getNumLabels()));
+		measures.add(new mulan.evaluation.measure.MacroAUC(mInstances.getNumLabels()));
+		measures.add(new mulan.evaluation.measure.MicroAUC(mInstances.getNumLabels()));
 	}
 
 }

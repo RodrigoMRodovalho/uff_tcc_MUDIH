@@ -380,6 +380,7 @@ public class RRDHC extends MultiLabelMetaLearner{
 
     public DatasetWrapper getMLIFromLabels(ClusterOfLabels labels){
 
+        System.out.println("This cluster contains "+labels.getLabels().size()+" labels");
 
         int firstLabelIndex = labelIndices[0];
         int[] indexs = new int[labels.getLabels().size()];
@@ -455,8 +456,6 @@ public class RRDHC extends MultiLabelMetaLearner{
         mInstances = trainingSet;
         System.out.println("Starting building");
         ArrayList<ClusterOfLabels> clusters = run(trainingSet);
-
-        //TODO imprimir a quantidade de labels por cluster
 
         System.out.println("Done");
         learnerWrapper = new LearnerWrapper(clusters.size());

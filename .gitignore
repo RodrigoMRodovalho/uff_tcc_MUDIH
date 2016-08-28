@@ -77,3 +77,12 @@ $RECYCLE.BIN/
 
 *.idea/
 *.iml
+
+*.aux
+*.bbl
+*.lof
+*.lot
+*.log
+*.blg
+*.toc
+*.gz

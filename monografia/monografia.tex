@@ -1,0 +1,134 @@
+\documentclass[a4paper,oneside]{book}
+
+\pagestyle{myheadings}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Pacotes para acentuação %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[T1]{fontenc}
+\usepackage{ae}
+%\usepackage[ansinew]{inputenc}
+\usepackage[utf8]{inputenc}
+%%%%%%%%%%%
+\usepackage[brazilian]{babel}
+
+\usepackage{graphicx}
+
+%%%%%%%%%%%
+\usepackage{algorithmic}
+\usepackage[linesnumbered, ruled]{algorithm2e}
+\usepackage{array}
+
+\linespread{1.5} % espaçamento entre linhas
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%              Formatação da Página                  %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% horizontal
+\setlength{\hoffset}{-1in}
+
+\setlength{\oddsidemargin}{3.0cm} 
+
+\setlength{\textwidth}{160mm} % (210mm - 30mm - 20mm)
+
+\setlength{\parindent}{1.25cm} % identação de cada parágrafo
+
+% vertical
+\setlength{\voffset}{-1in}
+\addtolength{\voffset}{2.0cm}
+
+\setlength{\topmargin}{0.0cm}
+
+\setlength{\headheight}{5mm}
+\setlength{\headsep}{5mm}
+
+\setlength{\textheight}{247mm} % (297mm - 30mm - 20mm)
+
+%\setlength{\footskip}{0mm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+
+
+\include{capa}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                Numeracao em romano                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{roman}
+\setcounter{page}{2}
+
+
+\include{folhaRosto}
+
+\include{folhaAprovacao}
+
+\include{dedicatoria}
+
+\include{agradecimentos}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                  Lista de Ilustrações                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\listoffigures
+\addcontentsline{toc}{chapter}{Lista de Figuras}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                   Lista de Tabelas                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\listoftables
+\addcontentsline{toc}{chapter}{Lista de Tabelas}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                       Sumário                        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tableofcontents
+
+\include{resumo}
+
+\include{abstract}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                Numeracao em arabico                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagebreak
+\pagenumbering{arabic}
+
+\include{introducao}
+
+\include{capitulo1}
+
+\include{capitulo2}
+
+\include{capitulo3}
+
+\include{conclusao}
+
+\include{trabalhoFuturos}
+
+%\include{bibliografia}
+\bibliographystyle{plain}
+\bibliography{monografia.bib}
+%\bibliographystyle{ieeetr}  
+
+
+\end{document}
+
+
+

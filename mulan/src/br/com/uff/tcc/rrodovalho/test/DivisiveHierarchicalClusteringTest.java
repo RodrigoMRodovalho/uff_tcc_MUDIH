@@ -28,7 +28,7 @@ import weka.classifiers.trees.J48;
 public class DivisiveHierarchicalClusteringTest {
 
 	public static final String ARFF = "arff";
-	public static final String XML = "xml";
+	public static final String XML = ".xml";
 	static List<Measure> measures ;
 
 	public static void main(String[] args) throws InvalidDataFormatException, CloneNotSupportedException, IOException {
@@ -38,7 +38,7 @@ public class DivisiveHierarchicalClusteringTest {
 		Map<String,String> inOutMap = new HashMap<String, String>();
 		Map<String,String> outputResultMap = new HashMap<String, String>();
 		String commonInputPath = "/home/rrodovalho/Dropbox/TCC_Bases/bases/";
-		String commonOutPath = "/home/rrodovalho/Dropbox/TCC/RRDHC/LastResults/";
+		String commonOutPath = "/home/rrodovalho/Dropbox/TCC/holdout/";
 		String f,arff;
 
 		//Pendent
@@ -48,11 +48,10 @@ public class DivisiveHierarchicalClusteringTest {
 //		inOutMap.put("corel5k/Corel5k.","corel5k/");
 //		inOutMap.put("Corel16k001/Corel16k001.","Corel16k001/");
 //		inOutMap.put("delicious/delicious.","delicious/");
-		inOutMap.put("rcv1subset1/rcv1subset1.","rcv1subset1/");
-
+//		inOutMap.put("rcv1subset1/rcv1subset1.","rcv1subset1/");
 
 //   Muito tempo demora
-//		inOutMap.put("tmc2007/tmc2007.","tmc2007/");
+//		inOutMap.put("tmc2007/tmc2007","tmc2007/");
 
 //		Error
 //		inOutMap.put("mediamill/mediamill.","mediamill/");
@@ -60,29 +59,34 @@ public class DivisiveHierarchicalClusteringTest {
 
 		//Done
 //		inOutMap.put("genbase/genbase.","genbase/");
-//		inOutMap.put("emotions/emotions.","emotions/");
-//		inOutMap.put("yeast/yeast.","yeast/");
+//		inOutMap.put("emotions/emotions","emotions/");
 //		inOutMap.put("scene/scene.","scene/");
 //		inOutMap.put("enron/enron.","enron/");
+//		inOutMap.put("yeast/yeast.","yeast/");
+//		inOutMap.put("rcv1subset1/rcv1subset1.","rcv1subset1/");
 //		inOutMap.put("medical/medical.","medical/");
 
+		//sintetic dataset
+		inOutMap.put("DataBase/DataBase","DataBase/");
 
 		ArrayList<MultiLabelLearner> multiLabelLearnerArrayList = new ArrayList<>();
+		multiLabelLearnerArrayList.add(new BinaryRelevance(new J48()));
 		multiLabelLearnerArrayList.add(new RRDHC (new LabelPowerset(new J48()),5));
-		multiLabelLearnerArrayList.add(new RRDHC (new ClassifierChain(new J48()),5));
+		//multiLabelLearnerArrayList.add(new RRDHC (new ClassifierChain(new J48()),5));
 		multiLabelLearnerArrayList.add(new HOMER (new LabelPowerset(new J48()),5, HierarchyBuilder.Method.Clustering));
-		multiLabelLearnerArrayList.add(new HOMER (new ClassifierChain(new J48()),5, HierarchyBuilder.Method.Clustering));
+		//multiLabelLearnerArrayList.add(new HOMER (new ClassifierChain(new J48()),5, HierarchyBuilder.Method.Clustering));
 
 		ArrayList<String> outputNames = new ArrayList<>();
+		outputNames.add("BinaryRelevanceJ48_10F");
 		outputNames.add("RRDHC_LabelPowersetJ48_5C10F");
-		outputNames.add("RRDHC_ClassifierChainJ48_5C10F");
+//		outputNames.add("RRDHC_ClassifierChainJ48_5C10F");
 		outputNames.add("HOMER_LabelPowersetJ48_5C10F");
-		outputNames.add("HOMER_ClassifierChainJ48_5C10F");
+//		outputNames.add("HOMER_ClassifierChainJ48_5C10F");
 
 		for (Map.Entry<String, String> entry : inOutMap.entrySet())
 		{
 			f = commonInputPath.concat(entry.getKey());
-			arff = f.concat(ARFF);
+			arff = f;//.concat(ARFF);
 			inputBasesPathArray.add(arff);
 			xmlMap.put(arff, f.concat(XML));
 			outputResultMap.put(arff, commonOutPath.concat(entry.getValue()));
@@ -91,41 +95,63 @@ public class DivisiveHierarchicalClusteringTest {
 		f= null;
 		arff=null;
 
-		MultiLabelInstances mInstances = null;
+//		MultiLabelInstances mInstances = null;
+		MultiLabelInstances mTrainInstances = null;
+		MultiLabelInstances mTestInstances = null;
 		DivisiveHierarchicalClustering method = null;
 
 		FileWriter fw = null;
 		BufferedWriter bw = null;
-		Evaluator evaluator;
-		Evaluation evaluation;
+		Evaluator evaluator = null;
+		Evaluation evaluation = null;
 		MultipleEvaluation results;
 
 		for(int i=0;i<inputBasesPathArray.size();i++){
 			String s = inputBasesPathArray.get(i);
 			String o = outputResultMap.get(s);
 			checkDir(o);
-			mInstances = new MultiLabelInstances(s,xmlMap.get(s));
 
-			setMeasuresArray(mInstances);
+//			mInstances = new MultiLabelInstances(s,xmlMap.get(s));
+			mTrainInstances  = new MultiLabelInstances(s.concat("-train.arff"),xmlMap.get(s));
+			mTestInstances  = new MultiLabelInstances(s.concat("-test.arff"),xmlMap.get(s));
+
+//			setMeasuresArray(mInstances);
+			setMeasuresArray(mTrainInstances);
 
 			for(int j=0;j<multiLabelLearnerArrayList.size();j++){
 				fw = new FileWriter(o+outputNames.get(j)+".txt");
 				bw = new BufferedWriter(fw);
 				evaluator = new Evaluator();
 				bw.write("Info: "+o+outputNames.get(j)+"\n");
-				bw.write("Num Instances "+mInstances.getNumInstances()+"\n");
-				bw.write("Num Labels "+mInstances.getNumLabels()+"\n");
+				bw.write("Num Instances Train"+mTrainInstances.getNumInstances()+"\n");
+				bw.write("Num Instances Test"+mTestInstances.getNumInstances()+"\n");
+				bw.write("Num Labels "+mTrainInstances.getNumLabels()+"\n");
 				System.out.println("Info: "+o+outputNames.get(j));
-				System.out.println("Num Instances "+mInstances.getNumInstances());
-				System.out.println("Num Labels "+mInstances.getNumLabels());
+				System.out.println("Num Instances Train"+mTrainInstances.getNumInstances());
+				System.out.println("Num Instances Test"+mTestInstances.getNumInstances());
+				System.out.println("Num Labels "+mTrainInstances.getNumLabels());
 				Timestamp timeStamp = new Timestamp(Calendar.getInstance().getTime().getTime());
-				System.out.println("Crossvalidate starting at "+timeStamp.toString());
-				bw.write("Crossvalidate starting at "+timeStamp.toString()+"\n");
-				results = evaluator.crossValidate(multiLabelLearnerArrayList.get(j), mInstances, measures,10);
+				System.out.println("Holdout starting at "+timeStamp.toString());
+//				System.out.println("Crossvalidate starting at "+timeStamp.toString());
+				bw.write("Holdout starting at "+timeStamp.toString()+"\n");
+//				bw.write("Crossvalidate starting at "+timeStamp.toString()+"\n");
+
+
+				try {
+					multiLabelLearnerArrayList.get(j).build(mTrainInstances);
+					evaluation = evaluator.evaluate(multiLabelLearnerArrayList.get(j),mTestInstances,measures);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+//				results = evaluator.crossValidate(multiLabelLearnerArrayList.get(j), mInstances, measures,10);
 				timeStamp = new Timestamp(Calendar.getInstance().getTime().getTime());
-				System.out.println("Crossvalidate ending at "+timeStamp.toString());
-				bw.write("Crossvalidate ending at "+timeStamp.toString()+"\n");
-				bw.write(results.toString());
+				System.out.println("Holdout ending at "+timeStamp.toString());
+//				System.out.println("Crossvalidate ending at "+timeStamp.toString());
+				bw.write("Holdout ending at "+timeStamp.toString()+"\n");
+//				bw.write("Crossvalidate ending at "+timeStamp.toString()+"\n");
+//				bw.write(results.toString());
+				bw.write(evaluation.toString());
 				bw.close();
 				evaluator = null;
 				evaluation = null;
